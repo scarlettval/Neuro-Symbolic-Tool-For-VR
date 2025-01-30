@@ -141,16 +141,16 @@ Connect your Meta Quest 2 via USB (Developer Mode on).
 Build and run to confirm everything deploys and works on the headset.
 
 ## Development Roadmap
-Phase 1: Research & Foundation
+- Phase 1: Research & Foundation
 Select frameworks, set up baseline environment.
-Phase 2: Core Subsystem Development
+- Phase 2: Core Subsystem Development
 Implement initial neural network training and symbolic rules.
-Phase 3: Integration & Prototyping
+- Phase 3: Integration & Prototyping
 Merge symbolic reasoning with the neural network in Unity for a basic VR prototype.
-Phase 4: Testing & Refinement
+- Phase 4: Testing & Refinement
 Comprehensive QA, focusing on logic consistency, ML performance, and VR interactivity.
-Phase 5: Documentation & Release
-Finalize user guides, diagrams, and demos.
-Contributing
-We welcome contributions! Please:
+- Phase 5: Documentation & Release
 
+
+## Collaborators: 
+This project would not have been possible without Juliana Unger, Logan Marrone, Matthew Henao, and Scarlett Valencia-Pulido
