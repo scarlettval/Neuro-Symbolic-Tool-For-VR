@@ -1,0 +1,20 @@
+# Core Machine Learning
+torch==2.0.1
+torchvision==0.15.2
+torchaudio==2.0.2
+
+# Symbolic Reasoning Integration 
+pyswip==0.2.10
+
+# Speech Recognition 
+pocketsphinx==0.1.15
+
+# General AI/Math Utilities
+numpy==1.23.5
+scipy==1.10.1
+
+# If you plan to use OpenAI Whisper for more advanced speech recognition:
+openai-whisper==20230314
+
+# If you need cross-platform debugging or logging:
+rich==13.3.3

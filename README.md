@@ -84,33 +84,33 @@ Install Unity Hub and add Android Build Support, OpenJDK, and the Oculus XR Plug
 Open the UnityProject/ folder in Unity to load the project.
 Python Environment
 
+# Installation Guide
+
+## Install Python
 Install Python 3.9+ (3.10 recommended for broader compatibility).
-Create and activate a virtual environment:
-bash
-Copy
-Edit
+
+## Create and Activate a Virtual Environment
+```bash
 python -m venv venv
 source venv/bin/activate  # macOS/Linux
 .\venv\Scripts\activate   # Windows
-Install dependencies:
-Copy
-Edit
-pip install -r requirements.txt
-Prolog Installation
+```
 
-Install SWI-Prolog.
+```bash
+    pip install -r requirements.txt
+    Prolog Installation
+    Install SWI-Prolog.
 Verify installation:
-bash
-Copy
-Edit
-swipl --version
+```
+```bash
+    swipl --version
+    ```
 Confirm Setup
 
 In your activated Python environment:
-bash
-Copy
-Edit
-python -c "import torch; import pyswip; print('All good!')"
+```bash
+    python -c "import torch; import pyswip; print('All good!')"
+
 In Unity, under Build Settings ensure the platform is set to Android and in Project Settings → XR Plug-in Management confirm the Oculus plugin is enabled.
 Usage
 Prolog Logic
@@ -119,23 +119,20 @@ If you have logic files in prolog/symbolic_rules.pl, you can load them in SWI-Pr
 Python Scripts
 
 Speech Recognition (example):
-bash
-Copy
-Edit
-python python/speech_recognition.py
-Neural Network:
-bash
-Copy
-Edit
-python python/network.py
-Main Orchestration:
-bash
-Copy
-Edit
-python python/main.py
+```bash
+    python python/speech_recognition.py
+    Neural Network:
+
+```bash
+    python python/network.py
+```
+    Main Orchestration:
+
+```bash
+    python python/main.py
+```
 This may coordinate speech recognition → neural network → symbolic logic → VR commands.
 Unity VR Testing
-
 Open UnityProject/ in Unity.
 Connect your Meta Quest 2 via USB (Developer Mode on).
 Build and run to confirm everything deploys and works on the headset.
