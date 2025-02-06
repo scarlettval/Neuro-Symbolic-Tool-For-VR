@@ -1,30 +1,21 @@
 from pyswip import Prolog
-import os
 
-def query_prolog():
-    prolog = Prolog()
+prolog = Prolog()
 
-    # Get the absolute path and replace ALL backslashes with forward slashes
-    prolog_file = os.path.abspath("prolog/symbolic_rules.pl").replace("\\", "/")
+# Ensure the correct Prolog file path with DOUBLE BACKSLASHES
+prolog_file = "C:\\Users\\mjhen\\OneDrive\\Documents\\Spring 2025\\EGN 4952C\\Symbolic-Tool-For-Virtual-Reality\\neuro-symbolic-vr-tool\\prolog\\symbolic_rules.pl"
 
-    # Ensure Prolog receives a correctly formatted path
-    prolog_command = f"consult('{prolog_file}')"
+print(f"🔹 Using Prolog file path: {prolog_file}")
 
-    print(f"🔹 Using Prolog file path: {prolog_file}")
+try:
+    # Set the working directory explicitly
+    prolog_directory = "c:\\Users\\mjhen\\OneDrive\\Documents\\Spring 2025\\EGN 4952C\\Symbolic-Tool-For-Virtual-Reality\\neuro-symbolic-vr-tool\\prolog"
+    prolog.query(f"working_directory(_, '{prolog_directory.replace('\\', '\\\\')}').")
 
-    try:
-        # Load the Prolog file
-        prolog.consult(prolog_file)
-        print("✅ Prolog file loaded successfully.")
+    # Load the Prolog file (ensure proper escaping)
+    prolog.consult(prolog_file.replace("\\", "\\\\"))  # Double escaping for Prolog
 
-        # Test query
-        results = list(prolog.query("ancestor(X, alice)."))
+    print("✅ Prolog file loaded successfully!")
 
-        for result in results:
-            print(f"Ancestor of Alice: {result['X']}")
-
-    except Exception as e:
-        print(f"❌ Error loading Prolog file: {e}")
-
-if __name__ == "__main__":
-    query_prolog()
+except Exception as e:
+    print(f"❌ Error loading Prolog file: {e}")
