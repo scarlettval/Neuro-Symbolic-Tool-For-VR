@@ -1,21 +1,31 @@
+import os
 from pyswip import Prolog
+
+# ✅ Get the directory where THIS script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# ✅ Move to the project root (neuro-symbolic-vr-tool)
+project_root = os.path.join(script_dir, "..")
+os.chdir(project_root)  # Change working directory to the project root
+
+# ✅ Set SWI-Prolog path explicitly
+os.environ["SWI_PROLOG_PATH"] = "C:/Program Files/swipl/bin/swipl.exe"
 
 prolog = Prolog()
 
-# Ensure the correct Prolog file path with DOUBLE BACKSLASHES
-prolog_file = "C:\\Users\\mjhen\\OneDrive\\Documents\\Spring 2025\\EGN 4952C\\Symbolic-Tool-For-Virtual-Reality\\neuro-symbolic-vr-tool\\prolog\\symbolic_rules.pl"
+# ✅ Use a Prolog-safe path
+prolog_file = os.path.abspath("prolog/symbolic_rules.pl").replace("\\", "/")
 
 print(f"🔹 Using Prolog file path: {prolog_file}")
 
 try:
-    # Set the working directory explicitly
-    prolog_directory = "c:\\Users\\mjhen\\OneDrive\\Documents\\Spring 2025\\EGN 4952C\\Symbolic-Tool-For-Virtual-Reality\\neuro-symbolic-vr-tool\\prolog"
-    prolog.query(f"working_directory(_, '{prolog_directory.replace('\\', '\\\\')}').")
-
-    # Load the Prolog file (ensure proper escaping)
-    prolog.consult(prolog_file.replace("\\", "\\\\"))  # Double escaping for Prolog
-
+    # ✅ Pass the absolute file path to Prolog
+    prolog.consult(prolog_file)
     print("✅ Prolog file loaded successfully!")
+
+    # ✅ Run a test query (modify this based on your Prolog rules)
+    result = list(prolog.query("some_fact(X)."))  # Replace with an actual fact/rule
+    print("🧠 Query Result:", result)
 
 except Exception as e:
     print(f"❌ Error loading Prolog file: {e}")
