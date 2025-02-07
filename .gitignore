@@ -1,2 +1,18 @@
 # Ignore virtual environment
 venv/
+
+# Ignore Unity auto-generated files
+Library/
+Logs/
+Temp/
+obj/
+Build/
+Builds/
+UserSettings/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.unitypackage
+*.pidb
+*.userprefs

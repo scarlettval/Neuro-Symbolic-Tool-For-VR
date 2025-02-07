@@ -1,46 +1,32 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import pandas as pd
 import numpy as np
 
-# ✅ Define Training Data (Features: Hand Tracking, Controller, Object Nearby)
-X_train = np.array([
-    [1, 0, 1],  # Hand tracking, no controller, object nearby -> grab_object
-    [0, 1, 0],  # No hand tracking, controller enabled, no object -> move_forward
-    [1, 0, 0],  # Hand tracking, no controller, no object -> wave_hand
-    [0, 1, 1],  # No hand tracking, controller, object nearby -> press_button
-    [1, 1, 1],  # Both enabled, object nearby -> grab_object
-    [0, 1, 0],  # Controller only -> move_forward
-    [1, 0, 0],  # Hand tracking only -> wave_hand
-    [0, 1, 1],  # Controller, object nearby -> press_button
-])
+# ✅ Load VR Training Data
+df = pd.read_csv("vr_training_data.csv")
 
-# ✅ Corresponding Actions (Labels)
-y_train = np.array([
-    0,  # grab_object
-    1,  # move_forward
-    2,  # wave_hand
-    3,  # press_button
-    0,  # grab_object
-    1,  # move_forward
-    2,  # wave_hand
-    3,  # press_button
-])
+# ✅ Convert Categorical Data (Posture) to Numbers
+posture_mapping = {"standing": 0, "crouching": 1, "jumping": 2}
+df["Posture"] = df["Posture"].map(posture_mapping)
 
-# ✅ Convert to Tensor
+# ✅ Prepare Inputs & Labels
+X_train = df[["HandTracking", "Controller", "ObjectNearby", "Posture", "HandX", "HandY", "HandZ"]].values
+y_train = df["Action"].astype("category").cat.codes.values
+action_labels = df["Action"].astype("category").cat.categories.tolist()
+
+# ✅ Convert to Tensors
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.long)
-
-# ✅ Define Action Labels
-action_labels = ["grab_object", "move_forward", "wave_hand", "press_button"]
 
 # ✅ Define Improved Neural Network
 class VRActionPredictor(nn.Module):
     def __init__(self):
         super(VRActionPredictor, self).__init__()
-        self.fc1 = nn.Linear(3, 8)  # More neurons for better feature learning
+        self.fc1 = nn.Linear(7, 10)  # More input features
         self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(8, 4)  # 4 possible actions
+        self.fc2 = nn.Linear(10, len(action_labels))  # Dynamic action count
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
@@ -53,7 +39,7 @@ model = VRActionPredictor()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.01)
 
-print("🚀 Training model...")
+print("🚀 Training with VR data...")
 for epoch in range(1000):
     optimizer.zero_grad()
     outputs = model(X_train)
@@ -66,9 +52,9 @@ for epoch in range(1000):
 
 # ✅ Save Model
 torch.save(model.state_dict(), "vr_action_model.pth")
-print("✅ Model training complete and saved!")
+print("✅ Model training complete with real VR data!")
 
 # ✅ Test Prediction
-example_input = torch.tensor([[1.0, 0.0, 1.0]])  # Hand tracking, object nearby
+example_input = torch.tensor([[1, 1, 1, 0, 0.5, 0.6, 0.7]])  # Example scenario
 predicted_action = action_labels[torch.argmax(model(example_input)).item()]
 print(f"🤖 Predicted Action: {predicted_action}")
