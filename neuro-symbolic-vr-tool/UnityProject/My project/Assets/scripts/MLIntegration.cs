@@ -6,7 +6,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 public class MLIntegration : MonoBehaviour
 {
     private InferenceSession session;
-    public string modelPath = "Assets/Models/VRActionModel.onnx"; // Adjust path as needed
+    public string modelPath = "My project/Assets/Models/VRActionModel.onnx";
 
     void Start()
     {
