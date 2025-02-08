@@ -33,121 +33,56 @@ A cutting-edge **Virtual Reality** system that integrates **Neural Networks** an
 - **Intuitive UI**: VR-based user interface for effortless interactions and fast feedback loops.
 
 ---
-
-## Architecture Overview
-
-Below is a simplified representation of the **Neuro-Symbolic VR Tool** workflow:
-
-     +---------------------+
-     |   Voice Commands   |
-     +---------------------+
-               |
-               v
-+----------------------------------+ | Speech Recognition (Python) | +----------------------------------+ | ^ | (Text) | (Audio) v | +--------------------------------------------------+ | Neural Network (PyTorch) | | - Processes user context | | - Learns from VR interaction data | +--------------------------------------------------+ | ^ | (Refined data) | (Queries & feedback) v | +--------------------------------+ | Symbolic Reasoning (Prolog) | | - Validates logic & commands | | - Provides rule-based actions | +--------------------------------+ | v +-----------------------------+ | Unity VR Environment | | - Meta Quest 2 compatible | | - UI, 3D objects, scenes | +-----------------------------+
+# INSTRUCTION FOR GROUP MEMEBERS
 
 
-**Key Interaction Flow**:  
-1. Voice input captured → **Speech Recognition** → textual commands  
-2. Text commands → **Neural Network** to interpret user intent & context  
-3. NN output queries/updates the **Symbolic Reasoning** module for logic consistency  
-4. Combined output → **Unity VR** for real-time display & interactivity  
-
----
-
-## Project Structure
-
-Typical layout (you can adapt to your needs):
-
-neuro-symbolic-vr-tool/ ├── UnityProject/ │ ├── Assets/ │ ├── Packages/ │ ├── ProjectSettings/ │ └── (etc.) ├── prolog/ │ └── symbolic_rules.pl ├── python/ │ ├── main.py │ ├── network.py │ ├── speech_recognition.py │ └── ... ├── requirements.txt ├── .gitignore └── README.md <-- (You are here)
-
-
-
-- **UnityProject/**: Contains all Unity assets, scenes, and project settings for VR development.  
-- **prolog/**: Houses Prolog rule files and logic statements.  
-- **python/**: Contains Python scripts for the neural network, speech recognition, and bridging code to Prolog.  
-- **requirements.txt**: Python dependencies.  
-- **.gitignore**: Ensures large or auto-generated files (e.g., Unity’s Library, Temp folders) are not committed.  
-
----
-
-## Installation
-
-1. **Clone the Repository**  
-   ```bash
-   git clone https://github.com/<your-username>/neuro-symbolic-vr-tool.git
-   cd neuro-symbolic-vr-tool
-
-
-2. **Unity Setup**
-
-Install Unity Hub and add Android Build Support, OpenJDK, and the Oculus XR Plugin.
-Open the UnityProject/ folder in Unity to load the project.
-Python Environment
-
-# Installation Guide
-
-## Install Python
-Install Python 3.9+ (3.10 recommended for broader compatibility).
-
-## Create and Activate a Virtual Environment
-```bash
+ Setup Instructions
+1️⃣ Clone the Repository
+bash
+Copy
+Edit
+git clone https://github.com/hanene152/Symbolic-Tool-For-Virtual-Reality.git
+cd Symbolic-Tool-For-Virtual-Reality/neuro-symbolic-vr-tool
+2️⃣ Create a Virtual Environment (Optional but Recommended)
+bash
+Copy
+Edit
 python -m venv venv
 source venv/bin/activate  # macOS/Linux
-.\venv\Scripts\activate   # Windows
-```
-
-```bash
-    pip install -r requirements.txt
-    Prolog Installation
-    Install SWI-Prolog.
-Verify installation:
-```
-```bash
-    swipl --version
-    ```
-Confirm Setup
-
-In your activated Python environment:
-```bash
-    python -c "import torch; import pyswip; print('All good!')"
-
-In Unity, under Build Settings ensure the platform is set to Android and in Project Settings → XR Plug-in Management confirm the Oculus plugin is enabled.
-Usage
-Prolog Logic
-
-If you have logic files in prolog/symbolic_rules.pl, you can load them in SWI-Prolog or via pyswip.
-Python Scripts
-
-Speech Recognition (example):
-```bash
-    python python/speech_recognition.py
-    Neural Network:
-
-```bash
-    python python/network.py
-```
-    Main Orchestration:
-
-```bash
-    python python/main.py
-```
-This may coordinate speech recognition → neural network → symbolic logic → VR commands.
-Unity VR Testing
-Open UnityProject/ in Unity.
-Connect your Meta Quest 2 via USB (Developer Mode on).
-Build and run to confirm everything deploys and works on the headset.
-
-## Development Roadmap
-- Phase 1: Research & Foundation
-Select frameworks, set up baseline environment.
-- Phase 2: Core Subsystem Development
-Implement initial neural network training and symbolic rules.
-- Phase 3: Integration & Prototyping
-Merge symbolic reasoning with the neural network in Unity for a basic VR prototype.
-- Phase 4: Testing & Refinement
-Comprehensive QA, focusing on logic consistency, ML performance, and VR interactivity.
-- Phase 5: Documentation & Release
-
-
-## Collaborators: 
-This project would not have been possible without Juliana Unger, Logan Marrone, Matthew Henao, and Scarlett Valencia-Pulido
+venv\Scripts\activate     # Windows (PowerShell)
+3️⃣ Install Dependencies
+bash
+Copy
+Edit
+pip install -r requirements.txt
+4️⃣ Verify Installation
+bash
+Copy
+Edit
+python -c "import torch, onnx, speech_recognition, logicpy, pandas, numpy; print('✅ All libraries loaded successfully!')"
+🔧 Running the Project
+1️⃣ Train the ML Model
+bash
+Copy
+Edit
+python python/network.py
+Trains the model on vr_training_data.csv
+Saves the trained model in trained_models/vr_model.pth
+2️⃣ Convert Model to ONNX for Unity
+bash
+Copy
+Edit
+python python/export_to_onnx.py
+Converts vr_model.pth to vr_model.onnx (saved in trained_models/)
+3️⃣ Run Symbolic Reasoning
+bash
+Copy
+Edit
+python python/prolog_interface.py
+Uses symbolic logic to determine valid actions based on current conditions.
+4️⃣ Test Speech Recognition
+bash
+Copy
+Edit
+python python/speech_module.py
+Uses speech_recognition to interpret voice commands.
