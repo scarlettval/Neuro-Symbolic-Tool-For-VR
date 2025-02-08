@@ -1,4 +1,13 @@
-from pyswip import Prolog
+import onnxruntime as ort
+import numpy as np
 
-prolog = Prolog()
-print(list(prolog.query("current_prolog_flag(version, X)")))
+# Load the ONNX model
+onnx_path = "trained_models/vr_model.onnx"
+session = ort.InferenceSession(onnx_path)
+
+# Create a dummy input
+test_input = np.random.randn(1, 7).astype(np.float32)  # Match input size
+
+# Run inference
+outputs = session.run(None, {"input": test_input})
+print("ONNX Model Output:", outputs)

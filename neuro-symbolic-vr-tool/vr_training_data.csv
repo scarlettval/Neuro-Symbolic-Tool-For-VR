@@ -1,0 +1,4 @@
+HandTracking,Controller,ObjectNearby,Posture,HandX,HandY,HandZ,Action
+1,0,1,standing,0.5,1.2,-0.3,move_forward
+0,1,0,crouching,0.2,-0.1,0.3,jump
+1,1,1,standing,-0.4,0.7,0.8,wave_hand
