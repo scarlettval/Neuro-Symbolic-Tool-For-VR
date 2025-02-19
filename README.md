@@ -86,3 +86,43 @@ Copy
 Edit
 python python/speech_module.py
 Uses speech_recognition to interpret voice commands.
+
+# DOCUMENTATION OF FILES
+## Python Files
+
+**__init__**
+Placeholder file that is used as an empty call.
+
+**export_to_onnx**
+Export file that loads up the model, making sure it fits certain criteria, sets up the model, and exports it in an ONNX file for input into Unity.
+
+**main**
+Primary main function holds the link between Speech Recognition and Neural Network.
+
+**network**
+Controls the Neural Network by converting labels and data into usable datasets for a Neural Network, tensors, runs the model, defines and anticipates loss, trains and saves the model at the end for use in the system.
+
+**prolog_interface**
+Houses the Symbolic Reasoning that incorporates key words in the program, load a ML program to try to predict a user's action, process the audio command from the speech_module, and evaluate the results.
+
+**speech_module**
+Holds the code that incorporates the speech recognition library used in our system that pulls audio from the mic and tests if it is usable and translate the speech to a string.
+
+**test**
+Sample test module that loads the ONNX file and add input to check the inference.
+
+## Trained Models
+
+**action_mapping**
+This file holds the unprocessed data regarding the user's physical actions for use in Neural Network.
+
+**vr_model**
+Export file that is the processed action_mapping file after use in Neural Network.
+
+## Unity
+(To be filled out later)
+### Assets
+
+### Packages
+
+### ProjectSettings
