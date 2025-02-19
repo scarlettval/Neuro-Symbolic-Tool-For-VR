@@ -16,3 +16,6 @@ UserSettings/
 *.unitypackage
 *.pidb
 *.userprefs
+
+
+myenv/
