@@ -19,3 +19,6 @@ UserSettings/
 
 
 myenv/
+*venv
+.venv\
+venv.venvScriptsactivate/
