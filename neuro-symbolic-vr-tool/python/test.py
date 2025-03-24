@@ -1,6 +1,41 @@
-import pandas as pd
-df = pd.read_csv("vr_training_data.csv")
+import sys
+import os
 
-print(df.isna().sum())  # Check for missing values
-print(df.describe())  # See numerical ranges
-print(df.head())  # Display the first few rows
+# Add the root directory to sys.path so Python can find symbolic_module
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from symbolic_module.prolog_interface import send_to_prolog
+from mask_rcnn_module import MaskRCNNDetector
+
+
+import os
+
+def map_label_to_symbolic(label):
+    if label == "person":
+        return "create(cube)."
+    elif label == "bottle":
+        return "delete(sphere)."
+    elif label == "chair":
+        return "move(cylinder, [1, 0, 0])."
+    else:
+        return None
+
+detector = MaskRCNNDetector()
+image_path = os.path.join("images", "hand.jpg")
+
+try:
+    results = detector.predict(image_path)
+
+    if not results:
+        print("No high-confidence objects detected.")
+    else:
+        for obj in results:
+            print(f"Detected: {obj['label']} (score: {obj['score']}) at {obj['box']}")
+            symbolic_command = map_label_to_symbolic(obj['label'])
+            if symbolic_command:
+                print(f"→ Mapped to symbolic: {symbolic_command}")
+                send_to_prolog(symbolic_command)
+            else:
+                print("→ No symbolic action mapped.")
+except FileNotFoundError as e:
+    print(e)
