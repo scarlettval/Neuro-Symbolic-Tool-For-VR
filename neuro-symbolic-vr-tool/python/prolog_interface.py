@@ -4,6 +4,36 @@ import torch
 import torch.nn as nn
 
 # ✅ Define symbolic logic terms
+pyDatalog.create_terms('action, condition, effect, interactable, object, X, Y, Z, exists, size, position, rotation')
+
+# ✅ Object Creation Rules
++action("spawn", "can_spawn")  # Can create an object if spawning is enabled
++action("delete", "exists")  # Can delete an object if it exists
+
+# ✅ Object Movement Rules
++action("move", "exists")  # Can move objects if they exist
++action("resize", "exists")  # Can resize objects if they exist
++action("rotate", "exists")  # Can rotate objects if they exist
+
+# ✅ Interaction Rules (Hand tracking removed)
++interactable("cube")
++interactable("sphere")
++interactable("pyramid")
++interactable("cylinder")
+
+# ✅ Default World Conditions
++condition("can_spawn")  # Users are allowed to spawn objects
++condition("exists") <= object(X)  # Objects must exist to interact with them
+
+effect(X) <= action(X, Y) & condition(Y)
+
+# ✅ Default Object Properties (Assign initial values)
++object("cube")  # Example object
++size("cube", 1)  # Default size
++position("cube", (0, 0, 0))  # Default position
++rotation("cube", (0, 0, 0))  # Default rotation
+
+# ✅ Define symbolic logic terms
 pyDatalog.create_terms('action, condition, effect, interactable, required, X, Y')
 
 # ✅ Expanded Symbolic VR Actions
