@@ -12,13 +12,18 @@ import os
 
 def map_label_to_symbolic(label):
     if label == "person":
-        return "create(cube)."
+        return "create(cube)"
     elif label == "bottle":
-        return "delete(sphere)."
+        return "create(cylinder)"
     elif label == "chair":
-        return "move(cylinder, [1, 0, 0])."
+        return "create(sphere)"
+    elif label == "tv":
+        return "delete(cube)"
+    elif label == "book":
+        return "move(sphere, [1, 0, 0])"
     else:
         return None
+
 
 detector = MaskRCNNDetector()
 image_path = os.path.join("images", "hand.jpg")
@@ -31,7 +36,7 @@ try:
     else:
         for obj in results:
             print(f"Detected: {obj['label']} (score: {obj['score']}) at {obj['box']}")
-            symbolic_command = map_label_to_symbolic(obj['label'])
+            symbolic_command = map_label_to_symbolic(obj['label']).rstrip(".")
             if symbolic_command:
                 print(f"→ Mapped to symbolic: {symbolic_command}")
                 send_to_prolog(symbolic_command)
