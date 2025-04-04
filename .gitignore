@@ -22,3 +22,7 @@ myenv/
 *venv
 .venv\
 venv.venvScriptsactivate/
+source/
+demo.py
+data/
+convert_clevr_to_coco.py
