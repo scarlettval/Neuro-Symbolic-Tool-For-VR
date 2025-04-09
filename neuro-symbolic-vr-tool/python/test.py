@@ -8,8 +8,6 @@ from symbolic_module.prolog_interface import send_to_prolog
 from mask_rcnn_module import MaskRCNNDetector
 
 
-import os
-
 def map_label_to_symbolic(label):
     if label == "person":
         return "create(cube)"
@@ -26,7 +24,8 @@ def map_label_to_symbolic(label):
 
 
 detector = MaskRCNNDetector()
-image_path = os.path.join("images", "hand.jpg")
+image_path = "../images/hand.jpg"
+
 
 try:
     results = detector.predict(image_path)
