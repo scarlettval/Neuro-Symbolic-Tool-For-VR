@@ -26,3 +26,9 @@ source/
 demo.py
 data/
 convert_clevr_to_coco.py
+Lib/
+clevr_model_final.pth
+Source/
+clevr_env
+venv310/
+detectron2/
