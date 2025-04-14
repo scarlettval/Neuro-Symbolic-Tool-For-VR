@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.IO;
 
 public class ScreenshotVR : MonoBehaviour
 {
@@ -8,7 +9,13 @@ public class ScreenshotVR : MonoBehaviour
 
     void Start()
     {
-        screenshotPath = Application.persistentDataPath + "/vr_screenshot.png";
+        string scriptFolder = Application.dataPath + "/python/";
+        if (!Directory.Exists(scriptFolder))
+        {
+            Directory.CreateDirectory(scriptFolder);
+        }
+
+        screenshotPath = scriptFolder + "vr_screenshot.png";
     }
 
     public void TakeScreenshot()
