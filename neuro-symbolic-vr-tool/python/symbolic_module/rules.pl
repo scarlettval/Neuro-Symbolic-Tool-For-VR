@@ -1,96 +1,71 @@
-move_the_large_blue_cube_to_the_left(Action) :- Action = move_object(large_blue_cube, left).
-move_the_large_blue_cube_to_the_right(Action) :- Action = move_object(large_blue_cube, right).
-move_the_large_green_cylinder_to_the_left(Action) :- Action = move_object(large_green_cylinder, left).
-move_the_large_green_cylinder_to_the_right(Action) :- Action = move_object(large_green_cylinder, right).
-move_the_small_cyan_cube_to_the_left(Action) :- Action = move_object(small_cyan_cube, left).
-move_the_small_cyan_cube_to_the_right(Action) :- Action = move_object(small_cyan_cube, right).
-move_the_large_brown_cylinder_to_the_left(Action) :- Action = move_object(large_brown_cylinder, left).
-move_the_large_brown_cylinder_to_the_right(Action) :- Action = move_object(large_brown_cylinder, right).
-move_the_small_gray_cube_to_the_left(Action) :- Action = move_object(small_gray_cube, left).
-move_the_small_gray_cube_to_the_right(Action) :- Action = move_object(small_gray_cube, right).
-move_the_large_brown_sphere_to_the_left(Action) :- Action = move_object(large_brown_sphere, left).
-move_the_large_brown_sphere_to_the_right(Action) :- Action = move_object(large_brown_sphere, right).
-move_the_large_gray_cube_to_the_left(Action) :- Action = move_object(large_gray_cube, left).
-move_the_large_gray_cube_to_the_right(Action) :- Action = move_object(large_gray_cube, right).
-move_the_small_green_sphere_to_the_left(Action) :- Action = move_object(small_green_sphere, left).
-move_the_small_green_sphere_to_the_right(Action) :- Action = move_object(small_green_sphere, right).
-move_the_small_yellow_cube_to_the_left(Action) :- Action = move_object(small_yellow_cube, left).
-move_the_small_yellow_cube_to_the_right(Action) :- Action = move_object(small_yellow_cube, right).
-move_the_small_yellow_cylinder_to_the_left(Action) :- Action = move_object(small_yellow_cylinder, left).
-move_the_small_yellow_cylinder_to_the_right(Action) :- Action = move_object(small_yellow_cylinder, right).
-move_the_small_gray_sphere_to_the_left(Action) :- Action = move_object(small_gray_sphere, left).
-move_the_small_gray_sphere_to_the_right(Action) :- Action = move_object(small_gray_sphere, right).
-move_the_large_blue_sphere_to_the_left(Action) :- Action = move_object(large_blue_sphere, left).
-move_the_large_blue_sphere_to_the_right(Action) :- Action = move_object(large_blue_sphere, right).
-move_the_small_yellow_sphere_to_the_left(Action) :- Action = move_object(small_yellow_sphere, left).
-move_the_small_yellow_sphere_to_the_right(Action) :- Action = move_object(small_yellow_sphere, right).
-move_the_small_red_sphere_to_the_left(Action) :- Action = move_object(small_red_sphere, left).
-move_the_small_red_sphere_to_the_right(Action) :- Action = move_object(small_red_sphere, right).
-move_the_small_brown_cube_to_the_left(Action) :- Action = move_object(small_brown_cube, left).
-move_the_small_brown_cube_to_the_right(Action) :- Action = move_object(small_brown_cube, right).
-move_the_large_yellow_sphere_to_the_left(Action) :- Action = move_object(large_yellow_sphere, left).
-move_the_large_yellow_sphere_to_the_right(Action) :- Action = move_object(large_yellow_sphere, right).
-move_the_large_gray_cylinder_to_the_left(Action) :- Action = move_object(large_gray_cylinder, left).
-move_the_large_gray_cylinder_to_the_right(Action) :- Action = move_object(large_gray_cylinder, right).
-move_the_small_purple_cube_to_the_left(Action) :- Action = move_object(small_purple_cube, left).
-move_the_small_purple_cube_to_the_right(Action) :- Action = move_object(small_purple_cube, right).
-move_the_large_cyan_cylinder_to_the_left(Action) :- Action = move_object(large_cyan_cylinder, left).
-move_the_large_cyan_cylinder_to_the_right(Action) :- Action = move_object(large_cyan_cylinder, right).
-move_the_small_blue_cube_to_the_left(Action) :- Action = move_object(small_blue_cube, left).
-move_the_small_blue_cube_to_the_right(Action) :- Action = move_object(small_blue_cube, right).
-move_the_large_green_sphere_to_the_left(Action) :- Action = move_object(large_green_sphere, left).
-move_the_large_green_sphere_to_the_right(Action) :- Action = move_object(large_green_sphere, right).
-move_the_large_cyan_sphere_to_the_left(Action) :- Action = move_object(large_cyan_sphere, left).
-move_the_large_cyan_sphere_to_the_right(Action) :- Action = move_object(large_cyan_sphere, right).
-move_the_small_purple_sphere_to_the_left(Action) :- Action = move_object(small_purple_sphere, left).
-move_the_small_purple_sphere_to_the_right(Action) :- Action = move_object(small_purple_sphere, right).
-move_the_small_cyan_cylinder_to_the_left(Action) :- Action = move_object(small_cyan_cylinder, left).
-move_the_small_cyan_cylinder_to_the_right(Action) :- Action = move_object(small_cyan_cylinder, right).
-move_the_large_yellow_cube_to_the_left(Action) :- Action = move_object(large_yellow_cube, left).
-move_the_large_yellow_cube_to_the_right(Action) :- Action = move_object(large_yellow_cube, right).
-move_the_small_cyan_sphere_to_the_left(Action) :- Action = move_object(small_cyan_sphere, left).
-move_the_small_cyan_sphere_to_the_right(Action) :- Action = move_object(small_cyan_sphere, right).
-move_the_large_purple_cube_to_the_left(Action) :- Action = move_object(large_purple_cube, left).
-move_the_large_purple_cube_to_the_right(Action) :- Action = move_object(large_purple_cube, right).
-move_the_large_green_cube_to_the_left(Action) :- Action = move_object(large_green_cube, left).
-move_the_large_green_cube_to_the_right(Action) :- Action = move_object(large_green_cube, right).
-move_the_small_red_cube_to_the_left(Action) :- Action = move_object(small_red_cube, left).
-move_the_small_red_cube_to_the_right(Action) :- Action = move_object(small_red_cube, right).
-move_the_large_gray_sphere_to_the_left(Action) :- Action = move_object(large_gray_sphere, left).
-move_the_large_gray_sphere_to_the_right(Action) :- Action = move_object(large_gray_sphere, right).
-move_the_large_blue_cylinder_to_the_left(Action) :- Action = move_object(large_blue_cylinder, left).
-move_the_large_blue_cylinder_to_the_right(Action) :- Action = move_object(large_blue_cylinder, right).
-move_the_small_green_cube_to_the_left(Action) :- Action = move_object(small_green_cube, left).
-move_the_small_green_cube_to_the_right(Action) :- Action = move_object(small_green_cube, right).
-move_the_small_blue_sphere_to_the_left(Action) :- Action = move_object(small_blue_sphere, left).
-move_the_small_blue_sphere_to_the_right(Action) :- Action = move_object(small_blue_sphere, right).
-move_the_small_brown_sphere_to_the_left(Action) :- Action = move_object(small_brown_sphere, left).
-move_the_small_brown_sphere_to_the_right(Action) :- Action = move_object(small_brown_sphere, right).
-move_the_small_gray_cylinder_to_the_left(Action) :- Action = move_object(small_gray_cylinder, left).
-move_the_small_gray_cylinder_to_the_right(Action) :- Action = move_object(small_gray_cylinder, right).
-move_the_large_red_cube_to_the_left(Action) :- Action = move_object(large_red_cube, left).
-move_the_large_red_cube_to_the_right(Action) :- Action = move_object(large_red_cube, right).
-move_the_small_green_cylinder_to_the_left(Action) :- Action = move_object(small_green_cylinder, left).
-move_the_small_green_cylinder_to_the_right(Action) :- Action = move_object(small_green_cylinder, right).
-move_the_small_red_cylinder_to_the_left(Action) :- Action = move_object(small_red_cylinder, left).
-move_the_small_red_cylinder_to_the_right(Action) :- Action = move_object(small_red_cylinder, right).
-move_the_large_red_sphere_to_the_left(Action) :- Action = move_object(large_red_sphere, left).
-move_the_large_red_sphere_to_the_right(Action) :- Action = move_object(large_red_sphere, right).
-move_the_large_purple_cylinder_to_the_left(Action) :- Action = move_object(large_purple_cylinder, left).
-move_the_large_purple_cylinder_to_the_right(Action) :- Action = move_object(large_purple_cylinder, right).
-move_the_large_purple_sphere_to_the_left(Action) :- Action = move_object(large_purple_sphere, left).
-move_the_large_purple_sphere_to_the_right(Action) :- Action = move_object(large_purple_sphere, right).
-move_the_small_purple_cylinder_to_the_left(Action) :- Action = move_object(small_purple_cylinder, left).
-move_the_small_purple_cylinder_to_the_right(Action) :- Action = move_object(small_purple_cylinder, right).
-move_the_small_blue_cylinder_to_the_left(Action) :- Action = move_object(small_blue_cylinder, left).
-move_the_small_blue_cylinder_to_the_right(Action) :- Action = move_object(small_blue_cylinder, right).
-move_the_large_yellow_cylinder_to_the_left(Action) :- Action = move_object(large_yellow_cylinder, left).
-move_the_large_yellow_cylinder_to_the_right(Action) :- Action = move_object(large_yellow_cylinder, right).
-move_the_large_red_cylinder_to_the_left(Action) :- Action = move_object(large_red_cylinder, left).
-move_the_large_red_cylinder_to_the_right(Action) :- Action = move_object(large_red_cylinder, right).
-move_the_large_brown_cube_to_the_left(Action) :- Action = move_object(large_brown_cube, left).
-move_the_large_brown_cube_to_the_right(Action) :- Action = move_object(large_brown_cube, right).
-move_the_large_cyan_cube_to_the_left(Action) :- Action = move_object(large_cyan_cube, left).
-move_the_large_cyan_cube_to_the_right(Action) :- Action = move_object(large_cyan_cube, right).
-move_the_small_brown_cylinder_to_the_left(Action) :- Action = move_object(small_brown_cylinder, left).
-move_the_small_brown_cylinder_to_the_right(Action) :- Action = move_object(small_brown_cylinder, right).
+% ===============================================
+% Symbolic Rules for Neuro-Symbolic VR Tool
+% ===============================================
+loaded_rules :- format('✅ rules.pl successfully loaded~n').
+python_alive :- format('🐍 Python connected to correct rules.pl~n').
+
+:- dynamic object/2.
+
+% Initial scene objects (optional)
+object(small_red_cube, [size(small), color(red), shape(cube)]).
+object(medium_blue_sphere, [size(medium), color(blue), shape(sphere)]).
+object(large_green_cylinder, [size(large), color(green), shape(cylinder)]).
+
+% ---------------------------
+% Symbolic Actions
+% ---------------------------
+
+move_object(Name, Direction) :-
+    object(Name, _),
+    format('Moving ~w to the ~w~n', [Name, Direction]).
+
+create_object(Name, Properties) :-
+    \+ object(Name, _),
+    assertz(object(Name, Properties)),
+    format('Created ~w with properties ~w~n', [Name, Properties]).
+
+delete_object(Name) :-
+    object(Name, _),
+    retract(object(Name, _)),
+    format('Deleted ~w~n', [Name]).
+
+% ---------------------------
+% Helper to build names like small_red_cube
+% ---------------------------
+
+make_object_name(Size, Color, Shape, Name) :-
+    atomic_list_concat([Size, Color, Shape], '_', Name).
+
+% ---------------------------
+% Command Parsing
+% ---------------------------
+
+% Interpret: move the SIZE COLOR SHAPE to DIRECTION
+interpret(CommandStr, move_object(Name, DirectionAtom)) :-
+    split_string(CommandStr, " ", "", Parts),
+    Parts = ["move", "the", SizeStr, ColorStr, ShapeStr, "to", DirectionStr],
+    atom_string(Size, SizeStr),
+    atom_string(Color, ColorStr),
+    atom_string(Shape, ShapeStr),
+    atom_string(DirectionAtom, DirectionStr),
+    make_object_name(Size, Color, Shape, Name),
+    object(Name, _).
+
+
+interpret(CommandStr, create_object(Name, [size(Size), color(Color), shape(Shape)])) :-
+    split_string(CommandStr, " ", "", Parts),
+    Parts = ["create", "the", SizeStr, ColorStr, ShapeStr],
+    atom_string(Size, SizeStr),
+    atom_string(Color, ColorStr),
+    atom_string(Shape, ShapeStr),
+    make_object_name(Size, Color, Shape, Name),
+    \+ object(Name, _).
+
+interpret(CommandStr, delete_object(Name)) :-
+    split_string(CommandStr, " ", "", Parts),
+    Parts = ["delete", "the", SizeStr, ColorStr, ShapeStr],
+    atom_string(Size, SizeStr),
+    atom_string(Color, ColorStr),
+    atom_string(Shape, ShapeStr),
+    make_object_name(Size, Color, Shape, Name),
+    object(Name, _).

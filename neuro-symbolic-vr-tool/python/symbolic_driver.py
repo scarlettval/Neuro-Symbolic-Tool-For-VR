@@ -1,62 +1,95 @@
-import json
 import os
 from pyswip import Prolog
-from voice_module import get_voice_command, parse_command_to_symbolic
+from datetime import datetime
+from voice_module import get_voice_command
+from export_action import export_to_unity
+from send_to_unity import send_action_to_unity
 
-def scene_to_prolog_facts(scene_file):
-    with open(scene_file, "r") as f:
-        data = json.load(f)
+# -------------------------------
+# Configuration
+# -------------------------------
+RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl")
+JSON_PATH = os.path.join("output", "symbolic_action.json")
 
-    facts = []
-    for obj in data:
-        label = obj["label"].replace(" ", "_")
-        if label:
-            facts.append(f"object({label})")
-    return facts
+# -------------------------------
+# Main Symbolic Reasoning Flow
+# -------------------------------
+def run_prolog_interpretation(voice_text):
+    if not voice_text:
+        print("❌ No voice input received.")
+        return None
 
-def run_prolog_logic(scene_file, command):
     prolog = Prolog()
-
-    # ✅ Absolute path to rules.pl with escaped slashes
-    rules_path = os.path.abspath("python/symbolic_module/rules.pl").replace("\\", "\\\\")
-    print(f"🧠 Consulting Prolog rules from: {rules_path}")
+    sanitized_text = voice_text.replace("'", "\\'")
+    query = f"interpret('{sanitized_text}', Action)."
 
     try:
-        list(prolog.query(f"consult('{rules_path}')"))
+        escaped_path = RULES_PATH.replace("\\", "\\\\")
+        print(f"🧠 Consulting Prolog rules from: {escaped_path}")
+        list(prolog.query(f"consult('{escaped_path}')"))
+
+        loaded = list(prolog.query("current_predicate(interpret/2)"))
+        if not loaded:
+            print("❌ interpret/2 is NOT loaded")
+            return None
+        print("✅ interpret/2 is confirmed to be loaded.")
+
     except Exception as e:
-        print(f"❌ Failed to consult rules.pl: {e}")
-        return "consult_error"
+        print(f"❌ Failed during consult: {e}")
+        return None
 
-    # ✅ Load valid scene facts
-    facts = scene_to_prolog_facts(scene_file)
-    for fact in facts:
-        try:
-            prolog.assertz(fact)
-        except Exception as e:
-            print(f"⚠️ Skipped fact: {fact} | Reason: {e}")
-
-    query = f"{command}(Action)."
     try:
+        print(f"🔁 Running Prolog Query: {query}")
         result = list(prolog.query(query))
-        return result[0]["Action"] if result else "no_action"
+        if result:
+            value = result[0]["Action"]
+
+            # If Prolog returned a string instead of a compound term
+            if isinstance(value, str):
+                print(f"⚠️ Got a string instead of compound: {value}")
+                reparsed = list(prolog.query(f"Action = {value}."))
+                if reparsed:
+                    reparsed_value = reparsed[0]["Action"]
+                    if hasattr(reparsed_value, "functor"):
+                        return reparsed_value
+                    else:
+                        print("❌ reparsed_value is still not a compound term.")
+                        return None
+                else:
+                    print("❌ Failed to reparse symbolic result.")
+                    return None
+
+            return value
+        else:
+            print("⚠️ interpret/2 returned false (no match)")
+            return None
     except Exception as e:
         print(f"❌ Prolog query failed: {e}")
-        return "query_error"
+        return None
+
+# -------------------------------
+# Main Entry Point
+# -------------------------------
+def main():
+    try:
+        print(f"🎤 Listening for voice command... ({datetime.now()})")
+        voice_text = get_voice_command()
+    except Exception as e:
+        print(f"⚠️ Microphone not available. Switching to typed input.\n{e}")
+        voice_text = input("⌨️ Type your command instead: ")
+
+    if voice_text:
+        print(f"🗣️ Recognized: {voice_text}")
+        symbolic_action = run_prolog_interpretation(voice_text)
+
+        if symbolic_action and hasattr(symbolic_action, "functor"):
+            print(f"🎯 Symbolic Result: {symbolic_action}")
+            export_to_unity(symbolic_action, output_path=JSON_PATH)
+            send_action_to_unity(json_path=JSON_PATH)
+        else:
+            print("⚠️ No valid symbolic action returned or could not be parsed.")
+    else:
+        print("❌ Voice recognition failed or no input provided.")
 
 if __name__ == "__main__":
-    scene_file = os.path.join("exported", "received_s_scene.json")
-
-    if not os.path.exists(scene_file):
-        print("❌ scene.json not found.")
-        exit()
-
-    voice_text = get_voice_command()
-    symbolic_command = parse_command_to_symbolic(voice_text)
-
-    if symbolic_command:
-        symbolic_command = symbolic_command.replace("the_the", "the").replace("_to_to_", "_to_")
-        print(f"🔁 Querying: {symbolic_command}(Action).")
-        result = run_prolog_logic(scene_file, symbolic_command)
-        print("🎯 Symbolic Result:", result)
-    else:
-        print("❌ Could not parse voice command into symbolic query.")
+    main()
