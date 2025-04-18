@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
-using System.Xml.Linq;
 
 public class PythonSocketListener : MonoBehaviour
 {
@@ -63,46 +62,6 @@ public class PythonSocketListener : MonoBehaviour
             Debug.LogError($"JSON Parse error: {e.Message}");
         }
     }
-    void HandleMessage(string json)
-{
-    try
-    {
-        JObject data = JObject.Parse(json);
-        string action = data["action"]?.ToString();
-
-        if (action == "take_screenshot")
-        {
-            GetComponent<ScreenshotVR>()?.TakeScreenshot();
-            return;
-        }
-
-        string objName = data["object"]?.ToString();
-        string direction = data["direction"]?.ToString();
-
-        GameObject obj = GameObject.Find(objName);
-        if (obj != null)
-        {
-            Vector3 move = direction switch
-            {
-                "left" => Vector3.left,
-                "right" => Vector3.right,
-                "up" => Vector3.up,
-                "down" => Vector3.down,
-                _ => Vector3.zero
-            };
-            obj.transform.Translate(move * 1f);
-        }
-        else
-        {
-            Debug.LogWarning($"❗ GameObject '{objName}' not found in scene.");
-        }
-    }
-    catch (Exception e)
-    {
-        Debug.LogError($"JSON Parse error: {e.Message}");
-    }
-}
-
 
     void OnApplicationQuit()
     {
