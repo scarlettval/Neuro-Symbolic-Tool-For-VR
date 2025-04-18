@@ -1,62 +1,66 @@
-import json
 import os
 from pyswip import Prolog
-from voice_module import get_voice_command, parse_command_to_symbolic
+from voice_module import get_voice_command
+from export_action import export_to_unity
+from send_to_unity import send_action_to_unity
 
-def scene_to_prolog_facts(scene_file):
-    with open(scene_file, "r") as f:
-        data = json.load(f)
+RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl").replace("\\", "/")
+SCENE_JSON = os.path.abspath("output/clevr_scene.json").replace("\\", "/")
+JSON_PATH = "output/symbolic_action.json"
 
-    facts = []
-    for obj in data:
-        label = obj["label"].replace(" ", "_")
-        if label:
-            facts.append(f"object({label})")
-    return facts
+def consult_and_load_scene(p):
+    print("🧠 Consulting rules from:", RULES_PATH)
+    list(p.query(f"consult('{RULES_PATH}')"))
 
-def run_prolog_logic(scene_file, command):
-    prolog = Prolog()
+    print("📄 Loading scene from:", SCENE_JSON)
+    list(p.query(f"rules:load_scene('{SCENE_JSON}')"))
 
-    # ✅ Absolute path to rules.pl with escaped slashes
-    rules_path = os.path.abspath("python/symbolic_module/rules.pl").replace("\\", "\\\\")
-    print(f"🧠 Consulting Prolog rules from: {rules_path}")
+def run_symbolic_pipeline(command_str):
+    p = Prolog()
+    consult_and_load_scene(p)
+
+    print(f"🔁 Running interpret on: '{command_str}'")
+    result = list(p.query(f"rules:interpret('{command_str}', Action)"))
+    filtered = [r for r in result if r["Action"] != "unknown_command"]
+    if not filtered:
+        print("⚠️ No valid symbolic action returned.")
+        return
+
+    raw_action = filtered[0]["Action"]
+    print("🎯 Symbolic Result:", raw_action)
+
+    # Remap symbolic to actual predicate
+    if raw_action.startswith("move("):
+        action_query = raw_action.replace("move", "move_object", 1)
+    elif raw_action.startswith("delete("):
+        action_query = raw_action.replace("delete", "delete_object", 1)
+    else:
+        action_query = raw_action
 
     try:
-        list(prolog.query(f"consult('{rules_path}')"))
+        list(p.query(f"rules:{action_query}"))
+        print("✅ Action executed in Prolog:", action_query)
+
+        # Export and Unity
+        export_to_unity(raw_action, output_path=JSON_PATH)
+        send_action_to_unity(json_path=JSON_PATH)
+
     except Exception as e:
-        print(f"❌ Failed to consult rules.pl: {e}")
-        return "consult_error"
+        print("❌ Could not run action in Prolog:", e)
 
-    # ✅ Load valid scene facts
-    facts = scene_to_prolog_facts(scene_file)
-    for fact in facts:
-        try:
-            prolog.assertz(fact)
-        except Exception as e:
-            print(f"⚠️ Skipped fact: {fact} | Reason: {e}")
-
-    query = f"{command}(Action)."
+def main():
     try:
-        result = list(prolog.query(query))
-        return result[0]["Action"] if result else "no_action"
+        print("🎤 Listening for voice command...")
+        voice_text = get_voice_command()
     except Exception as e:
-        print(f"❌ Prolog query failed: {e}")
-        return "query_error"
+        print(f"⚠️ Microphone not available. Switching to typed input.\n{e}")
+        voice_text = input("⌨️ Type your command instead: ")
+
+    if voice_text:
+        print("🗣️ Recognized:", voice_text)
+        run_symbolic_pipeline(voice_text)
+    else:
+        print("❌ Voice recognition failed or no input provided.")
 
 if __name__ == "__main__":
-    scene_file = os.path.join("exported", "received_s_scene.json")
-
-    if not os.path.exists(scene_file):
-        print("❌ scene.json not found.")
-        exit()
-
-    voice_text = get_voice_command()
-    symbolic_command = parse_command_to_symbolic(voice_text)
-
-    if symbolic_command:
-        symbolic_command = symbolic_command.replace("the_the", "the").replace("_to_to_", "_to_")
-        print(f"🔁 Querying: {symbolic_command}(Action).")
-        result = run_prolog_logic(scene_file, symbolic_command)
-        print("🎯 Symbolic Result:", result)
-    else:
-        print("❌ Could not parse voice command into symbolic query.")
+    main()
