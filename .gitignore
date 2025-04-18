@@ -16,6 +16,8 @@ UserSettings/
 *.unitypackage
 *.pidb
 *.userprefs
+/output/*.pth
+
 
 
 myenv/
@@ -44,4 +46,4 @@ detectron2/
 
 
 __pycache__/
-clevr_model_final.pth
+UnityProject/

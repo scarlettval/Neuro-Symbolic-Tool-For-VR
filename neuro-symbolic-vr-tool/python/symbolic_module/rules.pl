@@ -1,68 +1,91 @@
-% =============================
-% Dynamic Symbolic Rules
-% =============================
+%% rules.pl
+%% Dynamic scene management and command interpretation for CLEVR-based VR.
 
-:- dynamic object/2.
+:- module(rules, [
+    load_scene/1,
+    interpret/2,
+    add_object/5,
+    delete_object/1,
+    move_object/4,
+    list_objects/0
+]).
 
-% Example object knowledge base
-object(small_red_cube, [size(small), color(red), shape(cube)]).
+:- use_module(library(http/json)).   % json_read_dict/2
+:- dynamic object/6.
 
-% ----------------------------
-% Action Definitions
-% ----------------------------
+%% load_scene(+JSONFile)
+%  Read CLEVR scene JSON and assert object/6 facts.
+load_scene(File) :-
+    retractall(object(_,_,_,_,_,_)),
+    open(File, read, In),
+    json_read_dict(In, Dict),
+    close(In),
+    Objects = Dict.get(objects),
+    maplist(assert_object, Objects).
 
-move_object(Name, Direction) :-
-    object(Name, _),
-    format('Moving ~w to ~w~n', [Name, Direction]).
+assert_object(Obj) :-
+    Id        = Obj.get('id'),
+    Color     = Obj.get('color'),
+    Shape     = Obj.get('shape'),
+    Material  = Obj.get('material'),
+    Size      = Obj.get('size'),
+    Position  = Obj.get('translation'),
+    assertz(object(Id,Color,Shape,Material,Size,Position)).
 
-create_object(Name, [size(Size), color(Color), shape(Shape)]) :-
-    \+ object(Name, _),
-    assertz(object(Name, [size(Size), color(Color), shape(Shape)])),
-    format('Created ~w~n', [Name]).
+%% add_object(+ID, +Color, +Shape, +Material, +Size)
+%  Default at origin.
+add_object(Id,Color,Shape,Material,Size) :-
+    default_position(X,Y,Z),
+    assertz(object(Id,Color,Shape,Material,Size,[X,Y,Z])).
 
-delete_object(Name) :-
-    object(Name, _),
-    retract(object(Name, _)),
-    format('Deleted ~w~n', [Name]).
+%% delete_object(+ID)
+delete_object(Id) :-
+    retractall(object(Id,_,_,_,_,_)).
 
-% ----------------------------
-% Object Name Builder
-% ----------------------------
+%% move_object(+ID, +DX, +DY, +DZ)
+move_object(Id,DX,DY,DZ) :-
+    object(Id,C,S,M,Si,[X,Y,Z]),
+    NewX is X+DX, NewY is Y+DY, NewZ is Z+DZ,
+    retract(object(Id,C,S,M,Si,[X,Y,Z])),
+    assertz(object(Id,C,S,M,Si,[NewX,NewY,NewZ])).
 
-make_object_name(Size, Color, Shape, Name) :-
-    atomic_list_concat([Size, Color, Shape], '_', Name).
+%% list_objects
+list_objects :-
+    forall(object(ID,C,S,M,Si,Pos),
+           format('~w: ~w ~w ~w (~w) at ~w~n',[ID,C,S,M,Si,Pos])
+    ).
 
-% ----------------------------
-% interpret/2 Rules
-% ----------------------------
+%% default_position(-X,-Y,-Z)
+default_position(0,0,0).
 
-% move the small red cube to left
-interpret(CommandStr, move_object(Name, Direction)) :-
-    split_string(CommandStr, " ", "", Words),
-    Words = ["move", "the", SizeStr, ColorStr, ShapeStr, "to", DirectionStr],
-    atom_string(Size, SizeStr),
-    atom_string(Color, ColorStr),
-    atom_string(Shape, ShapeStr),
-    atom_string(Direction, DirectionStr),
-    make_object_name(Size, Color, Shape, Name),
-    object(Name, _).
+%% interpret(+CommandString, -ActionTerm)
+%  Parses a space-separated command into an action.
+interpret(Command, Action) :-
+    split_string(Command, " ", "", Tokens),
+    parse_command(Tokens, Action).
 
-% create the small red cube
-interpret(CommandStr, create_object(Name, [size(Size), color(Color), shape(Shape)])) :-
-    split_string(CommandStr, " ", "", Words),
-    Words = ["create", "the", SizeStr, ColorStr, ShapeStr],
-    atom_string(Size, SizeStr),
-    atom_string(Color, ColorStr),
-    atom_string(Shape, ShapeStr),
-    make_object_name(Size, Color, Shape, Name),
-    \+ object(Name, _).
+%% Simple grammar for add, delete, move
+parse_command(["add",Color,Shape,Size,Material],
+              add(NewID,ColorAtom,ShapeAtom,MaterialAtom,SizeAtom)) :-
+    atom_string(ColorAtom,Color),
+    atom_string(ShapeAtom,Shape),
+    atom_string(SizeAtom,Size),
+    atom_string(MaterialAtom,Material),
+    gensym(obj_,NewID),
+    add_object(NewID,ColorAtom,ShapeAtom,MaterialAtom,SizeAtom).
 
-% delete the small red cube
-interpret(CommandStr, delete_object(Name)) :-
-    split_string(CommandStr, " ", "", Words),
-    Words = ["delete", "the", SizeStr, ColorStr, ShapeStr],
-    atom_string(Size, SizeStr),
-    atom_string(Color, ColorStr),
-    atom_string(Shape, ShapeStr),
-    make_object_name(Size, Color, Shape, Name),
-    object(Name, _).
+parse_command(["delete","object",IdStr],
+              delete(IdAtom)) :-
+    atom_number(IdAtom,IdStr),
+    delete_object(IdAtom).
+
+parse_command(["move","object",IdStr,"by",DXs,DYs,DZs],
+              move(IdAtom,DX,DY,DZ)) :-
+    atom_number(IdAtom,IdStr),
+    number_string(DX,DXs),
+    number_string(DY,DYs),
+    number_string(DZ,DZs),
+    move_object(IdAtom,DX,DY,DZ).
+
+%% Fallback: no match
+parse_command(_,unknown_command).
