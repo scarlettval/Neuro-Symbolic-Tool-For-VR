@@ -1,99 +1,57 @@
-""import os
-import json
+
+import os
 import time
 from pyswip import Prolog
-from voice_module import get_voice_command
 from export_action import export_to_unity
-from send_to_unity import send_action_to_unity, send_custom_command
+from send_to_unity import send_action_to_unity
+from voice_module import get_voice_command
+from run_detection_and_generate_json import run_inference_and_save
 
-SCENE_JSON = os.path.abspath("output/clevr_scene.json")
-RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl")
-JSON_PATH = os.path.abspath("output/symbolic_action.json")
+RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl").replace("\\", "/")
+SCENE_PATH = os.path.abspath("output/clevr_scene.json").replace("\\", "/")
+JSON_PATH = "output/symbolic_action.json"
 
-def consult_rules(prolog):
-    try:
-        print(f"\U0001f9e0 Consulting rules from: {RULES_PATH}")
-        prolog.consult(RULES_PATH)
-        return True
-    except Exception as e:
-        print(f"❌ Failed to consult rules: {e}")
-        return False
+def run_symbolic_pipeline(command):
+    if "now" in command:
+        print("📸 Trigger word 'now' detected. Waiting for Unity screenshot...")
+        time.sleep(2)  # Give Unity time to save the screenshot
+        if not run_inference_and_save():
+            print("❌ Failed to generate clevr_scene.json")
+            return
+    else:
+        print("⚠️ 'now' not in command. Using existing scene.")
 
-def load_scene(prolog):
-    try:
-        print(f"\U0001f4c4 Loading scene from: {SCENE_JSON}")
-        list(prolog.query(f"load_scene('{SCENE_JSON}')"))
-        return True
-    except Exception as e:
-        print(f"❌ Failed to load scene: {e}")
-        return False
-
-def interpret_command(prolog, command):
-    try:
-        query = f"interpret('{command}', Action)"
-        print(f"\U0001f501 Running interpret on: '{command}'")
-        result = list(prolog.query(query))
-        return result[0]["Action"] if result else None
-    except Exception as e:
-        print(f"❌ Could not interpret command: {e}")
-        return None
-
-def run_action(prolog, action):
-    try:
-        if isinstance(action, str):
-            print(f"⚠️ Got string instead of Prolog term: {action}")
-            return action
-
-        functor = action.name
-        args = [str(a) for a in action.args]
-        goal = f"{functor}({', '.join(args)})"
-        print(f"✅ Action executed in Prolog: {goal}")
-        list(prolog.query(goal))
-        return action
-    except Exception as e:
-        print(f"❌ Could not run action in Prolog: {e}")
-        return None
-
-def trigger_screenshot():
-    print("\U0001f4f8 Sending screenshot trigger to Unity...")
-    send_custom_command({"action": "take_screenshot"})
-
-def run_symbolic_pipeline(voice_text):
-    if not voice_text:
-        print("❌ No voice input detected.")
-        return
-
-    voice_text = voice_text.lower().strip()
-
-    if voice_text.endswith("now"):
-        trigger_screenshot()
-        return
-
+    print(f"🧠 Consulting rules from: {RULES_PATH}")
     prolog = Prolog()
-    if not consult_rules(prolog):
-        return
-    if not load_scene(prolog):
+    prolog.consult(RULES_PATH)
+
+    print(f"📄 Loading scene from: {SCENE_PATH}")
+    list(prolog.query(f"load_scene('{SCENE_PATH}')"))
+
+    print(f"🔁 Running interpret on: '{command}'")
+    result = list(prolog.query(f"interpret('{command}', Action)"))
+
+    if not result:
+        print("❌ No symbolic action found.")
         return
 
-    action = interpret_command(prolog, voice_text)
-    if not action:
-        print("⚠️ No valid symbolic action returned.")
-        return
+    action = result[0]["Action"]
+    print(f"🎯 Symbolic Result: {action}")
 
-    print(f"\U0001f3af Symbolic Result: {action}")
-    executed = run_action(prolog, action)
-    if not executed:
-        print(f"⚠️ Could not parse action properly: {action}")
-        return
-
-    export_to_unity(executed, output_path=JSON_PATH)
-    send_action_to_unity(json_path=JSON_PATH)
+    try:
+        export_to_unity(action, output_path=JSON_PATH)
+        send_action_to_unity(json_path=JSON_PATH)
+    except Exception as e:
+        print(f"⚠️ Could not send action to Unity: {e}")
 
 def main():
-    print(">>\n🎤 Listening for voice command...")
+    print("🎤 Listening for voice command...")
     voice_text = get_voice_command()
-    print(f"🗣️ Recognized: {voice_text}")
-    run_symbolic_pipeline(voice_text)
+    if voice_text:
+        print(f"🗣️ Recognized: {voice_text}")
+        run_symbolic_pipeline(voice_text.lower())
+    else:
+        print("❌ No input detected.")
 
 if __name__ == "__main__":
     main()
