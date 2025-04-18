@@ -44,3 +44,4 @@ detectron2/
 
 
 __pycache__/
+clevr_model_final.pth
