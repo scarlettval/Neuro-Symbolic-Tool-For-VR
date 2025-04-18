@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 2630848}
   - component: {fileID: 2630847}
   m_Layer: 0
-  m_Name: Cylinder (1)
+  m_Name: large gray cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -517,7 +517,7 @@ GameObject:
   - component: {fileID: 720600179}
   - component: {fileID: 720600178}
   m_Layer: 0
-  m_Name: redCube (2)
+  m_Name: small yellow cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -625,7 +625,7 @@ GameObject:
   - component: {fileID: 744939672}
   - component: {fileID: 744939671}
   m_Layer: 0
-  m_Name: Cube (3)
+  m_Name: South Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -733,7 +733,7 @@ GameObject:
   - component: {fileID: 768796087}
   - component: {fileID: 768796086}
   m_Layer: 0
-  m_Name: Cube (2)
+  m_Name: North Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1107,7 +1107,7 @@ GameObject:
   - component: {fileID: 907044706}
   - component: {fileID: 907044705}
   m_Layer: 0
-  m_Name: redCube (1)
+  m_Name: large blue cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1323,7 +1323,7 @@ GameObject:
   - component: {fileID: 1057059611}
   - component: {fileID: 1057059610}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: West Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1539,7 +1539,7 @@ GameObject:
   - component: {fileID: 1258788755}
   - component: {fileID: 1258788754}
   m_Layer: 0
-  m_Name: yellowSphere
+  m_Name: small yellow sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1896,7 +1896,7 @@ GameObject:
   - component: {fileID: 1467862376}
   - component: {fileID: 1467862375}
   m_Layer: 0
-  m_Name: MiddleBoard (1)
+  m_Name: BottomBoard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1991,6 +1991,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1475733942
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1475733943}
+  m_Layer: 0
+  m_Name: ScreenshotManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1475733943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475733942}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.30255026, y: 0.31167114, z: 7.1877966}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1480791762
 GameObject:
   m_ObjectHideFlags: 0
@@ -2004,7 +2035,7 @@ GameObject:
   - component: {fileID: 1480791764}
   - component: {fileID: 1480791763}
   m_Layer: 0
-  m_Name: redCube
+  m_Name: large red cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2112,7 +2143,7 @@ GameObject:
   - component: {fileID: 1574773177}
   - component: {fileID: 1574773176}
   m_Layer: 0
-  m_Name: blueSphere (1)
+  m_Name: large red sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2220,7 +2251,7 @@ GameObject:
   - component: {fileID: 1592107883}
   - component: {fileID: 1592107882}
   m_Layer: 0
-  m_Name: Cylinder
+  m_Name: small green cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2330,7 +2361,7 @@ GameObject:
   - component: {fileID: 1702222969}
   - component: {fileID: 1702222968}
   m_Layer: 0
-  m_Name: Cube (1)
+  m_Name: East Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2438,7 +2469,7 @@ GameObject:
   - component: {fileID: 1798240803}
   - component: {fileID: 1798240802}
   m_Layer: 0
-  m_Name: MiddleBoard
+  m_Name: TopBoad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2733,7 +2764,7 @@ GameObject:
   - component: {fileID: 2115621975}
   - component: {fileID: 2115621974}
   m_Layer: 0
-  m_Name: blueSphere
+  m_Name: large blue sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3106,3 +3137,4 @@ SceneRoots:
   - {fileID: 1702222971}
   - {fileID: 1895317687}
   - {fileID: 1963579874}
+  - {fileID: 1475733943}

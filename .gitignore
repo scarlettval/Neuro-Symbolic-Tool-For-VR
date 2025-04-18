@@ -41,3 +41,6 @@ detectron2/
 *.user
 *.suo
 >>>>>>> Stashed changes
+
+
+__pycache__/
