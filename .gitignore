@@ -43,7 +43,7 @@ detectron2/
 *.user
 *.suo
 >>>>>>> Stashed changes
-
+cleaned-symbolic-tool/
 
 __pycache__/
 UnityProject/
