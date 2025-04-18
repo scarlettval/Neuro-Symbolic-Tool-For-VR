@@ -12,25 +12,27 @@
 
 :- use_module(library(http/json)).   % json_read_dict/2
 :- dynamic object/6.
+:- discontiguous parse_command/2.
 
 %% load_scene(+JSONFile)
 %  Read CLEVR scene JSON and assert object/6 facts.
 load_scene(File) :-
     retractall(object(_,_,_,_,_,_)),
     open(File, read, In),
-    json_read_dict(In, Dict),
+    json_read_dict(In, Objects),
     close(In),
-    Objects = Dict.get(objects),
     maplist(assert_object, Objects).
 
 assert_object(Obj) :-
-    Id        = Obj.get('id'),
-    Color     = Obj.get('color'),
-    Shape     = Obj.get('shape'),
-    Material  = Obj.get('material'),
-    Size      = Obj.get('size'),
-    Position  = Obj.get('translation'),
-    assertz(object(Id,Color,Shape,Material,Size,Position)).
+    string_lower(Obj.get(label), LabelStr),
+    atomic_list_concat(Words, ' ', LabelStr),
+    atomic_list_concat(Words, '_', Label),
+    Color     = Obj.get(color),
+    Shape     = Obj.get(shape),
+    Material  = Obj.get(material, default),
+    Size      = Obj.get(size),
+    Position  = Obj.get(position),
+    assertz(object(Label, Color, Shape, Material, Size, Position)).
 
 %% add_object(+ID, +Color, +Shape, +Material, +Size)
 %  Default at origin.
@@ -61,7 +63,8 @@ default_position(0,0,0).
 %% interpret(+CommandString, -ActionTerm)
 %  Parses a space-separated command into an action.
 interpret(Command, Action) :-
-    split_string(Command, " ", "", Tokens),
+    string_lower(Command, Lower),
+    split_string(Lower, " ", "", Tokens),
     parse_command(Tokens, Action).
 
 %% Simple grammar for add, delete, move
@@ -74,18 +77,50 @@ parse_command(["add",Color,Shape,Size,Material],
     gensym(obj_,NewID),
     add_object(NewID,ColorAtom,ShapeAtom,MaterialAtom,SizeAtom).
 
+parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", Dir1],
+              move(ID, DX, DY, DZ)) :-
+    atom_string(Size, SizeStr),
+    atom_string(Color, ColorStr),
+    atom_string(Shape, ShapeStr),
+    atom_string(Direction, Dir1),
+    format_atom_id(Size, Color, Shape, ID),
+    direction_delta(Direction, DX, DY, DZ),
+    move_object(ID, DX, DY, DZ).
+
+parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", "the", Dir2],
+              move(ID, DX, DY, DZ)) :-
+    atom_string(Size, SizeStr),
+    atom_string(Color, ColorStr),
+    atom_string(Shape, ShapeStr),
+    atom_string(Direction, Dir2),
+    format_atom_id(Size, Color, Shape, ID),
+    direction_delta(Direction, DX, DY, DZ),
+    move_object(ID, DX, DY, DZ).
+
 parse_command(["delete","object",IdStr],
               delete(IdAtom)) :-
-    atom_number(IdAtom,IdStr),
+    atom_string(IdAtom,IdStr),
     delete_object(IdAtom).
 
 parse_command(["move","object",IdStr,"by",DXs,DYs,DZs],
               move(IdAtom,DX,DY,DZ)) :-
-    atom_number(IdAtom,IdStr),
+    atom_string(IdAtom,IdStr),
     number_string(DX,DXs),
     number_string(DY,DYs),
     number_string(DZ,DZs),
     move_object(IdAtom,DX,DY,DZ).
+
+%% direction_delta(+Direction, -DX, -DY, -DZ)
+direction_delta(left,  -1, 0, 0).
+direction_delta(right,  1, 0, 0).
+direction_delta(forward, 0, 0, -1).
+direction_delta(backward, 0, 0, 1).
+direction_delta(up,     0, 1, 0).
+direction_delta(down,   0, -1, 0).
+
+%% format_atom_id(+Size, +Color, +Shape, -ID)
+format_atom_id(Size, Color, Shape, ID) :-
+    atomic_list_concat([Size, Color, Shape], '_', ID).
 
 %% Fallback: no match
 parse_command(_,unknown_command).

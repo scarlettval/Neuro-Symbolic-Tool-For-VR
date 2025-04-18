@@ -1,0 +1,24 @@
+[
+    {
+      "label": "small red cube",
+      "size": "small",
+      "color": "red",
+      "shape": "cube",
+      "position": [1, 0, 1]
+    },
+    {
+      "label": "large green sphere",
+      "size": "large",
+      "color": "green",
+      "shape": "sphere",
+      "position": [2, 0, 2]
+    },
+    {
+      "label": "medium blue cylinder",
+      "size": "medium",
+      "color": "blue",
+      "shape": "cylinder",
+      "position": [3, 0, 3]
+    }
+  ]
+  
