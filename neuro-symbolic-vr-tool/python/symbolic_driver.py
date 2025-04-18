@@ -1,66 +1,99 @@
-import os
+""import os
+import json
+import time
 from pyswip import Prolog
 from voice_module import get_voice_command
 from export_action import export_to_unity
-from send_to_unity import send_action_to_unity
+from send_to_unity import send_action_to_unity, send_custom_command
 
-RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl").replace("\\", "/")
-SCENE_JSON = os.path.abspath("output/clevr_scene.json").replace("\\", "/")
-JSON_PATH = "output/symbolic_action.json"
+SCENE_JSON = os.path.abspath("output/clevr_scene.json")
+RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl")
+JSON_PATH = os.path.abspath("output/symbolic_action.json")
 
-def consult_and_load_scene(p):
-    print("🧠 Consulting rules from:", RULES_PATH)
-    list(p.query(f"consult('{RULES_PATH}')"))
+def consult_rules(prolog):
+    try:
+        print(f"\U0001f9e0 Consulting rules from: {RULES_PATH}")
+        prolog.consult(RULES_PATH)
+        return True
+    except Exception as e:
+        print(f"❌ Failed to consult rules: {e}")
+        return False
 
-    print("📄 Loading scene from:", SCENE_JSON)
-    list(p.query(f"rules:load_scene('{SCENE_JSON}')"))
+def load_scene(prolog):
+    try:
+        print(f"\U0001f4c4 Loading scene from: {SCENE_JSON}")
+        list(prolog.query(f"load_scene('{SCENE_JSON}')"))
+        return True
+    except Exception as e:
+        print(f"❌ Failed to load scene: {e}")
+        return False
 
-def run_symbolic_pipeline(command_str):
-    p = Prolog()
-    consult_and_load_scene(p)
+def interpret_command(prolog, command):
+    try:
+        query = f"interpret('{command}', Action)"
+        print(f"\U0001f501 Running interpret on: '{command}'")
+        result = list(prolog.query(query))
+        return result[0]["Action"] if result else None
+    except Exception as e:
+        print(f"❌ Could not interpret command: {e}")
+        return None
 
-    print(f"🔁 Running interpret on: '{command_str}'")
-    result = list(p.query(f"rules:interpret('{command_str}', Action)"))
-    filtered = [r for r in result if r["Action"] != "unknown_command"]
-    if not filtered:
+def run_action(prolog, action):
+    try:
+        if isinstance(action, str):
+            print(f"⚠️ Got string instead of Prolog term: {action}")
+            return action
+
+        functor = action.name
+        args = [str(a) for a in action.args]
+        goal = f"{functor}({', '.join(args)})"
+        print(f"✅ Action executed in Prolog: {goal}")
+        list(prolog.query(goal))
+        return action
+    except Exception as e:
+        print(f"❌ Could not run action in Prolog: {e}")
+        return None
+
+def trigger_screenshot():
+    print("\U0001f4f8 Sending screenshot trigger to Unity...")
+    send_custom_command({"action": "take_screenshot"})
+
+def run_symbolic_pipeline(voice_text):
+    if not voice_text:
+        print("❌ No voice input detected.")
+        return
+
+    voice_text = voice_text.lower().strip()
+
+    if voice_text.endswith("now"):
+        trigger_screenshot()
+        return
+
+    prolog = Prolog()
+    if not consult_rules(prolog):
+        return
+    if not load_scene(prolog):
+        return
+
+    action = interpret_command(prolog, voice_text)
+    if not action:
         print("⚠️ No valid symbolic action returned.")
         return
 
-    raw_action = filtered[0]["Action"]
-    print("🎯 Symbolic Result:", raw_action)
+    print(f"\U0001f3af Symbolic Result: {action}")
+    executed = run_action(prolog, action)
+    if not executed:
+        print(f"⚠️ Could not parse action properly: {action}")
+        return
 
-    # Remap symbolic to actual predicate
-    if raw_action.startswith("move("):
-        action_query = raw_action.replace("move", "move_object", 1)
-    elif raw_action.startswith("delete("):
-        action_query = raw_action.replace("delete", "delete_object", 1)
-    else:
-        action_query = raw_action
-
-    try:
-        list(p.query(f"rules:{action_query}"))
-        print("✅ Action executed in Prolog:", action_query)
-
-        # Export and Unity
-        export_to_unity(raw_action, output_path=JSON_PATH)
-        send_action_to_unity(json_path=JSON_PATH)
-
-    except Exception as e:
-        print("❌ Could not run action in Prolog:", e)
+    export_to_unity(executed, output_path=JSON_PATH)
+    send_action_to_unity(json_path=JSON_PATH)
 
 def main():
-    try:
-        print("🎤 Listening for voice command...")
-        voice_text = get_voice_command()
-    except Exception as e:
-        print(f"⚠️ Microphone not available. Switching to typed input.\n{e}")
-        voice_text = input("⌨️ Type your command instead: ")
-
-    if voice_text:
-        print("🗣️ Recognized:", voice_text)
-        run_symbolic_pipeline(voice_text)
-    else:
-        print("❌ Voice recognition failed or no input provided.")
+    print(">>\n🎤 Listening for voice command...")
+    voice_text = get_voice_command()
+    print(f"🗣️ Recognized: {voice_text}")
+    run_symbolic_pipeline(voice_text)
 
 if __name__ == "__main__":
     main()
