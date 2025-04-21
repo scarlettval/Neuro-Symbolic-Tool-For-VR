@@ -8,7 +8,6 @@ using Newtonsoft.Json.Linq;
 public class PythonSocketListener : MonoBehaviour
 {
     private TcpListener server;
-    public ScreenshotVR screenshotScript;  // Drag your ScreenshotVR script here via Inspector
 
     void Start()
     {
@@ -38,30 +37,57 @@ public class PythonSocketListener : MonoBehaviour
         {
             JObject data = JObject.Parse(json);
 
-            if (data.ContainsKey("screenshot") && (bool)data["screenshot"] == true)
+            // Screenshot signal
+            if (data.ContainsKey("screenshot") && data["screenshot"]?.ToObject<bool>() == true)
             {
-                var screenshotComponent = FindObjectOfType<ScreenshotVR>();
-                if (screenshotComponent != null)
+                Debug.Log("📸 Screenshot request received.");
+                var screenshotScript = GameObject.FindObjectOfType<ScreenshotVR>();
+                if (screenshotScript != null)
                 {
-                    screenshotComponent.TakeScreenshot();
-                    Debug.Log("✅ Screenshot triggered by Python command.");
+                    screenshotScript.TakeScreenshot();
                 }
                 else
                 {
-                    Debug.LogError("❌ ScreenshotVR component not found in scene.");
+                    Debug.LogWarning("❗ ScreenshotVR component not found.");
                 }
                 return;
             }
 
-            // [Your existing movement code here]
+            string objName = data["object"]?.ToString();
+            string direction = data["direction"]?.ToString();
+
+            Debug.Log($"🔎 Looking for object: {objName}");
+            GameObject obj = GameObject.Find(objName);
+
+            if (obj != null)
+            {
+                Debug.Log($"✅ Found GameObject: {obj.name}");
+
+                Vector3 move = direction switch
+                {
+                    "left" => Vector3.left,
+                    "right" => Vector3.right,
+                    "up" => Vector3.up,
+                    "down" => Vector3.down,
+                    _ => Vector3.zero
+                };
+
+                obj.transform.Translate(move * 1f);
+            }
+            else
+            {
+                Debug.LogWarning($"❗ GameObject '{objName}' not found in scene.");
+            }
         }
         catch (Exception e)
         {
-            Debug.LogError($"JSON Parse error: {e.Message}");
+            Debug.LogError($"❌ JSON Parse or logic error: {e.Message}");
         }
     }
+
     void OnApplicationQuit()
     {
         server.Stop();
+        Debug.Log("🛑 Unity TCP server stopped.");
     }
 }

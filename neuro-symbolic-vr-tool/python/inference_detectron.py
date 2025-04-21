@@ -11,7 +11,7 @@ def setup_cfg():
     cfg = get_cfg()
     cfg.merge_from_file("output/clevr_config.yaml")
     cfg.MODEL.WEIGHTS = "output/clevr_model_final.pth"
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.3
     cfg.MODEL.DEVICE = "cpu"
     return cfg
 

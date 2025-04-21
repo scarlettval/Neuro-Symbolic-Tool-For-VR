@@ -1,24 +1,37 @@
-[
+{
+  "objects": [
     {
-      "label": "small red cube",
+      "label": "small_green_cylinder",
+      "position": [
+        276,
+        348,
+        0
+      ],
       "size": "small",
-      "color": "red",
-      "shape": "cube",
-      "position": [1, 0, 1]
-    },
-    {
-      "label": "large green sphere",
-      "size": "large",
       "color": "green",
-      "shape": "sphere",
-      "position": [2, 0, 2]
+      "shape": "cylinder"
     },
     {
-      "label": "medium blue cylinder",
-      "size": "medium",
+      "label": "small_blue_sphere",
+      "position": [
+        575,
+        239,
+        0
+      ],
+      "size": "small",
       "color": "blue",
-      "shape": "cylinder",
-      "position": [3, 0, 3]
+      "shape": "sphere"
+    },
+    {
+      "label": "small_purple_cube",
+      "position": [
+        265,
+        237,
+        0
+      ],
+      "size": "small",
+      "color": "purple",
+      "shape": "cube"
     }
   ]
-  
+}

@@ -84,8 +84,7 @@ parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", Dir1],
     atom_string(Shape, ShapeStr),
     atom_string(Direction, Dir1),
     format_atom_id(Size, Color, Shape, ID),
-    direction_delta(Direction, DX, DY, DZ),
-    move_object(ID, DX, DY, DZ).
+    direction_delta(Direction, DX, DY, DZ).
 
 parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", "the", Dir2],
               move(ID, DX, DY, DZ)) :-
@@ -94,8 +93,7 @@ parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", "the", Dir2],
     atom_string(Shape, ShapeStr),
     atom_string(Direction, Dir2),
     format_atom_id(Size, Color, Shape, ID),
-    direction_delta(Direction, DX, DY, DZ),
-    move_object(ID, DX, DY, DZ).
+    direction_delta(Direction, DX, DY, DZ).
 
 parse_command(["delete","object",IdStr],
               delete(IdAtom)) :-

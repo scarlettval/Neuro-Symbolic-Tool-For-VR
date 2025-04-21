@@ -1,62 +1,61 @@
 import os
+import json
 import torch
 import cv2
-import json
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
-from detectron2.data import MetadataCatalog
-from detectron2.utils.visualizer import ColorMode
-from detectron2.utils.visualizer import Visualizer
 
-LABELS_PATH = os.path.abspath("output/clevr_labels.json")
+CLEVR_LABELS_PATH = os.path.abspath("output/clevr_labels.json")
 MODEL_PATH = os.path.abspath("output/clevr_model_final.pth")
 
 def load_labels():
-    with open(LABELS_PATH, "r") as f:
+    with open(CLEVR_LABELS_PATH, "r") as f:
         return json.load(f)
 
 def setup_predictor():
     cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file(
-        "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
-    ))
+    cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(load_labels())
     cfg.MODEL.WEIGHTS = MODEL_PATH
-    cfg.MODEL.SCORE_THRESH_TEST = 0.6
-    cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    cfg.MODEL.DEVICE = "cpu"
     return DefaultPredictor(cfg)
 
-def run_inference_and_save(image_path, json_output_path):
+def run_inference_and_save(image_path, output_json_path):
     print(f"[INFO] Running inference on {image_path}")
-    image = cv2.imread(image_path)
     predictor = setup_predictor()
+    image = cv2.imread(image_path)
     outputs = predictor(image)
 
+    instances = outputs["instances"]
+    boxes = instances.pred_boxes.tensor.cpu().numpy()
+    classes = instances.pred_classes.cpu().numpy()
+
     labels = load_labels()
-    instances = outputs["instances"].to("cpu")
-    pred_classes = instances.pred_classes.numpy()
-    pred_boxes = instances.pred_boxes.tensor.numpy()
+    objects = []
 
-    result = []
-    for i, cls_idx in enumerate(pred_classes):
-        label = labels[str(cls_idx)]
-        parts = label.split()
-        if len(parts) == 3:
-            size, color, shape = parts
+    for i, (box, cls_idx) in enumerate(zip(boxes, classes)):
+        label = labels[cls_idx]
+        tokens = label.split()  # e.g., "small red cube"
+        if len(tokens) != 3:
+            size, color, shape = "unknown", "unknown", "unknown"
         else:
-            size, color, shape = "medium", "gray", "cube"
+            size, color, shape = tokens
 
-        center = pred_boxes[i][:2].tolist()
+        x_center = int((box[0] + box[2]) / 2)
+        y_center = int((box[1] + box[3]) / 2)
+
         obj = {
-            "label": label,
+            "label": label.replace(" ", "_"),
+            "position": [x_center, y_center, 0],
             "size": size,
             "color": color,
-            "shape": shape,
-            "position": [int(center[0]), 0, int(center[1])]
+            "shape": shape
         }
-        result.append(obj)
+        objects.append(obj)
 
-    with open(json_output_path, "w") as f:
-        json.dump(result, f, indent=2)
-        print(f"✅ clevr_scene.json written to: {json_output_path}")
+    scene = {"objects": objects}
+    with open(output_json_path, "w") as f:
+        json.dump(scene, f, indent=2)
+    print(f"[✅] CLEVR scene written to {output_json_path}")
