@@ -6,8 +6,7 @@ from voice_module import get_voice_command
 from export_action import export_to_unity
 from send_to_unity import send_action_to_unity
 
-# If you plan to use inference (triggered by "now"), uncomment the line below
-# from run_detection_and_generate_json import run_inference_and_save
+
 
 CLEVR_JSON_PATH = os.path.abspath("output/clevr_scene.json")
 RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl")

@@ -1,78 +1,63 @@
+# python/run_detection_and_generate_json.py
+
 import os
 import json
-import datetime
-from pyswip import Prolog
-from voice_module import get_voice_command
-from run_detection_and_generate_json import run_inference_and_save
-from export_action import export_to_unity
-from send_to_unity import send_action_to_unity
+import torch
+from PIL import Image
+from detectron2.engine import DefaultPredictor
+from detectron2.config import get_cfg
+from detectron2 import model_zoo
+from detectron2.data import MetadataCatalog
+from detectron2.structures import Boxes
+import numpy as np
 
-CLEVR_JSON_PATH = os.path.abspath("output/clevr_scene.json")
-RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl")
-SNAPSHOT_PATH = os.path.abspath("output/vr_snapshot.png")
-JSON_PATH = os.path.abspath("output/symbolic_action.json")
+# Paths
+MODEL_PATH = os.path.abspath("output/clevr_model_final.pth")
+LABELS_PATH = os.path.abspath("output/clevr_labels.json")
 
+def setup_predictor():
+    cfg = get_cfg()
+    cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(load_class_labels())
+    cfg.MODEL.WEIGHTS = MODEL_PATH
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+    cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    return DefaultPredictor(cfg)
 
-def run_symbolic_pipeline(command_text):
-    prolog = Prolog()
-    escaped_rules_path = RULES_PATH.replace("\\", "/")
-    escaped_json_path = CLEVR_JSON_PATH.replace("\\", "/")
+def load_class_labels():
+    with open(LABELS_PATH, "r") as f:
+        return json.load(f)
 
-    print(f"[INFO] Consulting rules from: {escaped_rules_path}")
-    list(prolog.query(f"consult('{escaped_rules_path}')"))
+def run_inference_and_save(image_path, output_json_path):
+    print(f"📸 Running object detection on: {image_path}")
+    predictor = setup_predictor()
+    image = np.array(Image.open(image_path).convert("RGB"))
 
-    print(f"[INFO] Loading scene from: {escaped_json_path}")
-    list(prolog.query(f"load_scene('{escaped_json_path}')"))
+    outputs = predictor(image)
+    boxes = outputs["instances"].pred_boxes.tensor.cpu().numpy()
+    classes = outputs["instances"].pred_classes.cpu().numpy()
 
-    print(f"[INFO] Running interpret on: '{command_text}'")
-    result = list(prolog.query(f"interpret('{command_text}', Action)"))
+    class_labels = load_class_labels()
+    result = []
 
-    if not result:
-        print("[WARNING] No valid symbolic action returned.")
-        return
+    for box, cls in zip(boxes, classes):
+        label = class_labels[str(cls)]
+        obj = {
+            "label": label,
+            "size": label.split()[0],
+            "color": label.split()[1],
+            "shape": label.split()[2],
+            "position": estimate_position_from_box(box)
+        }
+        result.append(obj)
 
-    action_term = result[0]["Action"]
-    print(f"[RESULT] Symbolic Result: {action_term}")
+    with open(output_json_path, "w") as f:
+        json.dump(result, f, indent=2)
+        print(f"✅ Scene saved to {output_json_path}")
 
-    try:
-        action_str = str(action_term)
-        if "(" in action_str and ")" in action_str:
-            inner = action_str[action_str.index("(")+1:action_str.index(")")]
-            parts = inner.split(",")
-            if "move" in action_str and len(parts) == 4:
-                obj, dx, dy, dz = [p.strip() for p in parts]
-                print(f"[INFO] Executing: move_object({obj}, {dx}, {dy}, {dz})")
-                list(prolog.query(f"move_object({obj}, {dx}, {dy}, {dz})"))
-            else:
-                print("[WARNING] Unsupported or malformed action.")
-        else:
-            print("[WARNING] Could not parse action properly.")
+def estimate_position_from_box(box):
+    x1, y1, x2, y2 = box
+    cx = (x1 + x2) / 2
+    cy = (y1 + y2) / 2
+    return [round(cx / 100, 2), 0, round(cy / 100, 2)]  # Simulated (x, y, z)
 
-        export_to_unity(action_term, output_path=JSON_PATH)
-        send_action_to_unity(json_path=JSON_PATH)
-
-    except Exception as e:
-        print(f"[ERROR] Error handling symbolic action: {e}")
-
-
-def main():
-    print("[MIC] Listening for voice command...", datetime.datetime.now())
-    voice_text = get_voice_command()
-
-    if voice_text is None:
-        print("[ERROR] No command detected.")
-        return
-
-    print(f"[RECOGNIZED] {voice_text}")
-
-    if "now" in voice_text.lower():
-        print("[TRIGGER] 'now' detected. Capturing scene snapshot...")
-        run_inference_and_save(SNAPSHOT_PATH, CLEVR_JSON_PATH)
-        voice_text = voice_text.lower().replace("now", "").strip()
-
-    if voice_text:
-        run_symbolic_pipeline(voice_text)
-
-
-if __name__ == "__main__":
-    main()

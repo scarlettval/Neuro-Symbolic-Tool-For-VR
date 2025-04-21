@@ -1,7 +1,6 @@
 import os
 from pyswip import Prolog
 
-# Use forward slashes for Prolog paths on Windows
 RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl").replace("\\", "/")
 SCENE_JSON = os.path.abspath("output/clevr_scene.json").replace("\\", "/")
 
