@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 public class PythonSocketListener : MonoBehaviour
 {
     private TcpListener server;
+    public ScreenshotVR screenshotScript;  // Drag your ScreenshotVR script here via Inspector
 
     void Start()
     {
@@ -26,7 +27,7 @@ public class PythonSocketListener : MonoBehaviour
         byte[] buffer = new byte[client.ReceiveBufferSize];
         int bytesRead = stream.Read(buffer, 0, buffer.Length);
         string msg = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-        Debug.Log($"📨 Received from Python: {msg}");
+        Debug.Log($"📩 Received from Python: {msg}");
         HandleMessage(msg);
         client.Close();
     }
@@ -37,64 +38,30 @@ public class PythonSocketListener : MonoBehaviour
         {
             JObject data = JObject.Parse(json);
 
-            // Screenshot trigger
-            if (data.ContainsKey("screenshot") && data["screenshot"].ToObject<bool>())
+            if (data.ContainsKey("screenshot") && (bool)data["screenshot"] == true)
             {
-                Debug.Log("📸 Screenshot trigger received from Python!");
-                ScreenshotVR screenshotScript = GameObject.FindObjectOfType<ScreenshotVR>();
-                if (screenshotScript != null)
+                var screenshotComponent = FindObjectOfType<ScreenshotVR>();
+                if (screenshotComponent != null)
                 {
-                    screenshotScript.TakeScreenshot();
+                    screenshotComponent.TakeScreenshot();
+                    Debug.Log("✅ Screenshot triggered by Python command.");
                 }
                 else
                 {
-                    Debug.LogWarning("⚠️ ScreenshotVR script not found in scene.");
+                    Debug.LogError("❌ ScreenshotVR component not found in scene.");
                 }
                 return;
             }
 
-            // Handle object move commands
-            string objName = data["object"]?.ToString();
-            string direction = data["direction"]?.ToString();
-
-            if (string.IsNullOrEmpty(objName) || string.IsNullOrEmpty(direction))
-            {
-                Debug.LogWarning("⚠️ Invalid command format.");
-                return;
-            }
-
-            GameObject obj = GameObject.Find(objName);
-            if (obj != null)
-            {
-                Vector3 move = direction switch
-                {
-                    "left" => Vector3.left,
-                    "right" => Vector3.right,
-                    "up" => Vector3.up,
-                    "down" => Vector3.down,
-                    _ => Vector3.zero
-                };
-
-                obj.transform.Translate(move * 1f);
-                Debug.Log($"✅ Moved '{objName}' to the {direction}.");
-            }
-            else
-            {
-                Debug.LogWarning($"❗ GameObject '{objName}' not found in scene.");
-            }
+            // [Your existing movement code here]
         }
         catch (Exception e)
         {
-            Debug.LogError($"❌ JSON Parse error: {e.Message}");
+            Debug.LogError($"JSON Parse error: {e.Message}");
         }
     }
-
     void OnApplicationQuit()
     {
-        if (server != null)
-        {
-            server.Stop();
-            Debug.Log("🛑 TCP server stopped.");
-        }
+        server.Stop();
     }
 }

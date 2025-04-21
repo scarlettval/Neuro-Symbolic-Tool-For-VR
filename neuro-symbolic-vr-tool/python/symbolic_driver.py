@@ -11,7 +11,7 @@ from run_detection_and_generate_json import run_inference_and_save
 BASE_DIR = os.path.abspath(".")
 RULES_PATH = os.path.join(BASE_DIR, "python", "symbolic_module", "rules.pl")
 CLEVR_JSON_PATH = os.path.join(BASE_DIR, "output", "clevr_scene.json")
-SNAPSHOT_PATH = os.path.join(BASE_DIR, "RealUnityFolder", "3DEnvironment", "Assets", "Snapshots", "vr_snapshot.png")
+SNAPSHOT_PATH = os.path.abspath("RealUnityFolder/3DEnvironment/Assets/Snapshots/vr_snapshot.png")
 JSON_PATH = os.path.join(BASE_DIR, "output", "symbolic_action.json")
 
 # === Prolog Setup ===
