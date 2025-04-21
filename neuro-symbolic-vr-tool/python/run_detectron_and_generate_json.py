@@ -1,66 +1,78 @@
-# python/run_detection_and_generate_json.py
-
-import torch
-import json
 import os
-import cv2
-from detectron2.engine import DefaultPredictor
-from detectron2.config import get_cfg
-from detectron2 import model_zoo
-from detectron2.data import MetadataCatalog
-from detectron2.structures import Boxes
+import json
+import datetime
+from pyswip import Prolog
+from voice_module import get_voice_command
+from run_detection_and_generate_json import run_inference_and_save
+from export_action import export_to_unity
+from send_to_unity import send_action_to_unity
 
-INPUT_IMAGE = "Assets/python/vr_screenshot.png"
-OUTPUT_JSON = "output/clevr_scene.json"
-MODEL_PATH = "output/clevr_model_final.pth"
+CLEVR_JSON_PATH = os.path.abspath("output/clevr_scene.json")
+RULES_PATH = os.path.abspath("python/symbolic_module/rules.pl")
+SNAPSHOT_PATH = os.path.abspath("output/vr_snapshot.png")
+JSON_PATH = os.path.abspath("output/symbolic_action.json")
 
-def get_predictor():
-    cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"))
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 24  # Adjust to match CLEVR classes
-    cfg.MODEL.WEIGHTS = MODEL_PATH
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-    cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    return DefaultPredictor(cfg)
 
-def run_inference_and_save():
-    if not os.path.exists(INPUT_IMAGE):
-        print(f"❌ Screenshot not found: {INPUT_IMAGE}")
-        return False
+def run_symbolic_pipeline(command_text):
+    prolog = Prolog()
+    escaped_rules_path = RULES_PATH.replace("\\", "/")
+    escaped_json_path = CLEVR_JSON_PATH.replace("\\", "/")
 
-    predictor = get_predictor()
-    image = cv2.imread(INPUT_IMAGE)
-    outputs = predictor(image)
+    print(f"[INFO] Consulting rules from: {escaped_rules_path}")
+    list(prolog.query(f"consult('{escaped_rules_path}')"))
 
-    metadata = MetadataCatalog.get(cfg.DATASETS.TRAIN[0]) if cfg.DATASETS.TRAIN else None
-    instances = outputs["instances"].to("cpu")
-    boxes = instances.pred_boxes if instances.has("pred_boxes") else Boxes([])
-    classes = instances.pred_classes.tolist() if instances.has("pred_classes") else []
+    print(f"[INFO] Loading scene from: {escaped_json_path}")
+    list(prolog.query(f"load_scene('{escaped_json_path}')"))
 
-    objects = []
-    for i in range(len(classes)):
-        class_id = classes[i]
-        label = metadata.thing_classes[class_id] if metadata else f"obj_{class_id}"
-        tokens = label.split()  # Expected: "small red cube"
-        if len(tokens) == 3:
-            size, color, shape = tokens
-            objects.append({
-                "label": label,
-                "size": size,
-                "color": color,
-                "shape": shape,
-                "position": [0, 0, 0]  # Optional: later use bounding box center or custom logic
-            })
+    print(f"[INFO] Running interpret on: '{command_text}'")
+    result = list(prolog.query(f"interpret('{command_text}', Action)"))
 
-    os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)
-    with open(OUTPUT_JSON, "w") as f:
-        json.dump(objects, f, indent=2)
-    print(f"✅ Scene JSON saved to: {OUTPUT_JSON}")
+    if not result:
+        print("[WARNING] No valid symbolic action returned.")
+        return
 
-    # ✅ ALSO save a timestamped backup for debugging
-    from datetime import datetime
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    debug_path = os.path.join(os.path.dirname(OUTPUT_JSON), f"clevr_scene_{timestamp}.json")
-    with open(debug_path, "w") as debug_f:
-        json.dump(objects, debug_f, indent=2)
-    print(f"🧾 Debug scene snapshot saved to: {debug_path}")
+    action_term = result[0]["Action"]
+    print(f"[RESULT] Symbolic Result: {action_term}")
+
+    try:
+        action_str = str(action_term)
+        if "(" in action_str and ")" in action_str:
+            inner = action_str[action_str.index("(")+1:action_str.index(")")]
+            parts = inner.split(",")
+            if "move" in action_str and len(parts) == 4:
+                obj, dx, dy, dz = [p.strip() for p in parts]
+                print(f"[INFO] Executing: move_object({obj}, {dx}, {dy}, {dz})")
+                list(prolog.query(f"move_object({obj}, {dx}, {dy}, {dz})"))
+            else:
+                print("[WARNING] Unsupported or malformed action.")
+        else:
+            print("[WARNING] Could not parse action properly.")
+
+        export_to_unity(action_term, output_path=JSON_PATH)
+        send_action_to_unity(json_path=JSON_PATH)
+
+    except Exception as e:
+        print(f"[ERROR] Error handling symbolic action: {e}")
+
+
+def main():
+    print("[MIC] Listening for voice command...", datetime.datetime.now())
+    voice_text = get_voice_command()
+
+    if voice_text is None:
+        print("[ERROR] No command detected.")
+        return
+
+    print(f"[RECOGNIZED] {voice_text}")
+
+    if "now" in voice_text.lower():
+        print("[TRIGGER] 'now' detected. Capturing scene snapshot...")
+        run_inference_and_save(SNAPSHOT_PATH, CLEVR_JSON_PATH)
+        voice_text = voice_text.lower().replace("now", "").strip()
+
+    if voice_text:
+        run_symbolic_pipeline(voice_text)
+
+
+if __name__ == "__main__":
+    main()
