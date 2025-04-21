@@ -8,42 +8,27 @@ using Newtonsoft.Json.Linq;
 public class PythonSocketListener : MonoBehaviour
 {
     private TcpListener server;
-    private bool isListening = false;
 
     void Start()
     {
-        try
-        {
-            server = new TcpListener(IPAddress.Any, 5050);
-            server.Start();
-            isListening = true;
-            Debug.Log("[Socket] Unity TCP server started on port 5050.");
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("[Socket] Failed to start TCP server: " + e.Message);
-        }
+        server = new TcpListener(IPAddress.Any, 5050);
+        server.Start();
+        Debug.Log("✅ Unity TCP server started on port 5050.");
+        InvokeRepeating(nameof(Listen), 1f, 0.5f);
     }
 
-    void Update()
+    void Listen()
     {
-        if (!isListening || server == null || !server.Pending()) return;
+        if (!server.Pending()) return;
 
-        try
-        {
-            TcpClient client = server.AcceptTcpClient();
-            NetworkStream stream = client.GetStream();
-            byte[] buffer = new byte[client.ReceiveBufferSize];
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            string msg = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-            Debug.Log("[Socket] Received from Python: " + msg);
-            HandleMessage(msg);
-            client.Close();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("[Socket] Error handling client: " + e.Message);
-        }
+        TcpClient client = server.AcceptTcpClient();
+        NetworkStream stream = client.GetStream();
+        byte[] buffer = new byte[client.ReceiveBufferSize];
+        int bytesRead = stream.Read(buffer, 0, buffer.Length);
+        string msg = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+        Debug.Log($"📨 Received from Python: {msg}");
+        HandleMessage(msg);
+        client.Close();
     }
 
     void HandleMessage(string json)
@@ -51,8 +36,32 @@ public class PythonSocketListener : MonoBehaviour
         try
         {
             JObject data = JObject.Parse(json);
+
+            // Screenshot trigger
+            if (data.ContainsKey("screenshot") && data["screenshot"].ToObject<bool>())
+            {
+                Debug.Log("📸 Screenshot trigger received from Python!");
+                ScreenshotVR screenshotScript = GameObject.FindObjectOfType<ScreenshotVR>();
+                if (screenshotScript != null)
+                {
+                    screenshotScript.TakeScreenshot();
+                }
+                else
+                {
+                    Debug.LogWarning("⚠️ ScreenshotVR script not found in scene.");
+                }
+                return;
+            }
+
+            // Handle object move commands
             string objName = data["object"]?.ToString();
             string direction = data["direction"]?.ToString();
+
+            if (string.IsNullOrEmpty(objName) || string.IsNullOrEmpty(direction))
+            {
+                Debug.LogWarning("⚠️ Invalid command format.");
+                return;
+            }
 
             GameObject obj = GameObject.Find(objName);
             if (obj != null)
@@ -65,17 +74,18 @@ public class PythonSocketListener : MonoBehaviour
                     "down" => Vector3.down,
                     _ => Vector3.zero
                 };
-                obj.transform.Translate(move);
-                Debug.Log($"[Socket] Moved {objName} to the {direction}");
+
+                obj.transform.Translate(move * 1f);
+                Debug.Log($"✅ Moved '{objName}' to the {direction}.");
             }
             else
             {
-                Debug.LogWarning($"[Socket] GameObject '{objName}' not found in scene.");
+                Debug.LogWarning($"❗ GameObject '{objName}' not found in scene.");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError("[Socket] JSON parse error: " + e.Message);
+            Debug.LogError($"❌ JSON Parse error: {e.Message}");
         }
     }
 
@@ -84,7 +94,7 @@ public class PythonSocketListener : MonoBehaviour
         if (server != null)
         {
             server.Stop();
-            isListening = false;
+            Debug.Log("🛑 TCP server stopped.");
         }
     }
 }
