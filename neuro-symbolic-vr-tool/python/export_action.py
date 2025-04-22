@@ -7,7 +7,6 @@ def export_to_unity(symbolic_result_str, output_path="output/symbolic_action.jso
         return
 
     try:
-        # Regex to extract action and arguments
         match = re.match(r"(\w+)\(([^)]+)\)", symbolic_result_str)
         if not match:
             print(f"❌ Invalid format: {symbolic_result_str}")
@@ -20,28 +19,29 @@ def export_to_unity(symbolic_result_str, output_path="output/symbolic_action.jso
             obj = args[0]
             dx, dy, dz = map(int, args[1:])
 
-            # Infer direction from delta (supports only single-axis moves)
-            direction = None
-            if dx == 1: direction = "right"
-            elif dx == -1: direction = "left"
-            elif dy == 1: direction = "up"
-            elif dy == -1: direction = "down"
-            elif dz == 1: direction = "backward"
-            elif dz == -1: direction = "forward"
+            direction_label = None
+            if dx == 1: direction_label = "right"
+            elif dx == -1: direction_label = "left"
+            elif dy == 1: direction_label = "up"
+            elif dy == -1: direction_label = "down"
+            elif dz == 1: direction_label = "backward"
+            elif dz == -1: direction_label = "forward"
 
-            if not direction:
+            if direction_label is None:
                 print(f"❌ Could not determine direction from ({dx}, {dy}, {dz})")
                 return
 
             data = {
+                "action": "move",
                 "object": obj,
-                "direction": direction
+                "direction": [dx, dy, dz],
+                "label": direction_label
             }
 
         elif action == "delete" or action == "delete_object":
             data = {
-                "object": args[0],
-                "direction": "none"
+                "action": "delete",
+                "object": args[0]
             }
 
         else:
@@ -49,8 +49,8 @@ def export_to_unity(symbolic_result_str, output_path="output/symbolic_action.jso
             return
 
         with open(output_path, "w") as f:
-            json.dump(data, f)
-            print(f"✅ JSON written to {output_path}: {data}")
+            json.dump(data, f, indent=4)
+            print(f"✅ symbolic_action.json written: {json.dumps(data)}")
 
     except Exception as e:
         print(f"❌ Error exporting action: {e}")

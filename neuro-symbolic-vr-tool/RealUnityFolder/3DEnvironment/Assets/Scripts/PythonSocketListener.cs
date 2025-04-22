@@ -8,13 +8,14 @@ using Newtonsoft.Json.Linq;
 public class PythonSocketListener : MonoBehaviour
 {
     private TcpListener server;
+    public string prefabPath = "Prefabs/";
 
     void Start()
     {
         server = new TcpListener(IPAddress.Any, 5050);
         server.Start();
         Debug.Log("✅ Unity TCP server started on port 5050.");
-        InvokeRepeating(nameof(Listen), 1f, 0.5f);
+        InvokeRepeating(nameof(Listen), 1f, 0.2f);
     }
 
     void Listen()
@@ -37,57 +38,79 @@ public class PythonSocketListener : MonoBehaviour
         {
             JObject data = JObject.Parse(json);
 
-            // Screenshot signal
             if (data.ContainsKey("screenshot") && data["screenshot"]?.ToObject<bool>() == true)
             {
-                Debug.Log("📸 Screenshot request received.");
-                var screenshotScript = GameObject.FindObjectOfType<ScreenshotVR>();
-                if (screenshotScript != null)
+                var screenshotObj = GameObject.Find("Main Camera");
+                if (screenshotObj != null && screenshotObj.GetComponent<ScreenshotVR>() != null)
                 {
-                    screenshotScript.TakeScreenshot();
-                }
-                else
-                {
-                    Debug.LogWarning("❗ ScreenshotVR component not found.");
+                    screenshotObj.GetComponent<ScreenshotVR>().TakeScreenshot();
                 }
                 return;
             }
 
+            string action = data["action"]?.ToString();
             string objName = data["object"]?.ToString();
-            string direction = data["direction"]?.ToString();
 
-            Debug.Log($"🔎 Looking for object: {objName}");
-            GameObject obj = GameObject.Find(objName);
-
-            if (obj != null)
+            if (action == "move")
             {
-                Debug.Log($"✅ Found GameObject: {obj.name}");
-
-                Vector3 move = direction switch
+                string direction = data["direction"]?.ToString();
+                GameObject obj = GameObject.Find(objName);
+                if (obj != null)
                 {
-                    "left" => Vector3.left,
-                    "right" => Vector3.right,
-                    "up" => Vector3.up,
-                    "down" => Vector3.down,
-                    _ => Vector3.zero
-                };
-
-                obj.transform.Translate(move * 1f);
+                    Vector3 move = direction switch
+                    {
+                        "left" => Vector3.left,
+                        "right" => Vector3.right,
+                        "up" => Vector3.up,
+                        "down" => Vector3.down,
+                        "forward" => Vector3.forward,
+                        "backward" => Vector3.back,
+                        _ => Vector3.zero
+                    };
+                    obj.transform.Translate(move * 1f);
+                    Debug.Log($"➡️ Moved {objName} to the {direction}");
+                }
+                else Debug.LogWarning($"❗ GameObject '{objName}' not found.");
             }
-            else
+            else if (action == "delete")
             {
-                Debug.LogWarning($"❗ GameObject '{objName}' not found in scene.");
+                GameObject obj = GameObject.Find(objName);
+                if (obj != null)
+                {
+                    Destroy(obj);
+                    Debug.Log($"🗑️ Deleted GameObject: {objName}");
+                }
+                else Debug.LogWarning($"❗ GameObject '{objName}' not found for deletion.");
+            }
+            else if (action == "add")
+            {
+                JObject props = (JObject)data["properties"];
+                string color = props["color"]?.ToString();
+                string shape = props["shape"]?.ToString();
+                string size = props["size"]?.ToString();
+                string prefabName = $"{shape}_{color}_{size}";
+
+                GameObject prefab = Resources.Load<GameObject>($"{prefabPath}{prefabName}");
+                if (prefab != null)
+                {
+                    GameObject newObj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+                    newObj.name = objName;
+                    Debug.Log($"✨ Created object: {objName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"❗ Prefab not found: {prefabPath}{prefabName}");
+                }
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"❌ JSON Parse or logic error: {e.Message}");
+            Debug.LogError($"❌ JSON Parse error: {e.Message}");
         }
     }
 
     void OnApplicationQuit()
     {
         server.Stop();
-        Debug.Log("🛑 Unity TCP server stopped.");
     }
 }

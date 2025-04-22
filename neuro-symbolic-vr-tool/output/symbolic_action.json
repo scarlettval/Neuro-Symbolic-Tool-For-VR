@@ -1,1 +1,10 @@
-{"object": "small_yellow_sphere", "direction": "left"}
+{
+    "action": "move",
+    "object": "large_blue_cube",
+    "direction": [
+        -1,
+        0,
+        0
+    ],
+    "label": "left"
+}
