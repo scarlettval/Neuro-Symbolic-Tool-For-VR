@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -8,109 +9,92 @@ using Newtonsoft.Json.Linq;
 public class PythonSocketListener : MonoBehaviour
 {
     private TcpListener server;
-    public string prefabPath = "Prefabs/";
+    private string screenshotPath;
 
     void Start()
     {
         server = new TcpListener(IPAddress.Any, 5050);
         server.Start();
+        screenshotPath = Path.Combine(Application.dataPath, "Snapshots/vr_snapshot.png");
         Debug.Log("✅ Unity TCP server started on port 5050.");
-        InvokeRepeating(nameof(Listen), 1f, 0.2f);
+        InvokeRepeating(nameof(Listen), 1f, 0.5f);
     }
 
     void Listen()
     {
-        if (!server.Pending()) return;
+        if (!server.Pending())
+            return;
 
         TcpClient client = server.AcceptTcpClient();
         NetworkStream stream = client.GetStream();
+
         byte[] buffer = new byte[client.ReceiveBufferSize];
         int bytesRead = stream.Read(buffer, 0, buffer.Length);
-        string msg = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-        Debug.Log($"📩 Received from Python: {msg}");
-        HandleMessage(msg);
-        client.Close();
-    }
+        string json = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-    void HandleMessage(string json)
-    {
+        Debug.Log("📩 Received from Python: " + json);
+
         try
         {
-            JObject data = JObject.Parse(json);
+            JObject parsed = JObject.Parse(json);
 
-            if (data.ContainsKey("screenshot") && data["screenshot"]?.ToObject<bool>() == true)
+            // === Handle screenshot request ===
+            if (parsed["screenshot"] != null && parsed["screenshot"].ToObject<bool>())
             {
-                var screenshotObj = GameObject.Find("Main Camera");
-                if (screenshotObj != null && screenshotObj.GetComponent<ScreenshotVR>() != null)
+                Debug.Log("📸 Screenshot command received");
+                Directory.CreateDirectory(Path.GetDirectoryName(screenshotPath));
+                ScreenCapture.CaptureScreenshot(screenshotPath);
+                Debug.Log($"✅ Screenshot saved to: {screenshotPath}");
+                return;
+            }
+
+            // === Handle object actions ===
+            string action = parsed["action"]?.ToString();
+            string objectName = parsed["object"]?.ToString();
+
+            GameObject obj = GameObject.Find(objectName);
+            if (obj == null)
+            {
+                Debug.LogWarning("🟥 GameObject NOT found: " + objectName);
+                foreach (GameObject go in GameObject.FindObjectsOfType<GameObject>())
                 {
-                    screenshotObj.GetComponent<ScreenshotVR>().TakeScreenshot();
+                    Debug.Log("Scene object: " + go.name);
                 }
                 return;
             }
 
-            string action = data["action"]?.ToString();
-            string objName = data["object"]?.ToString();
-
             if (action == "move")
             {
-                string direction = data["direction"]?.ToString();
-                GameObject obj = GameObject.Find(objName);
-                if (obj != null)
-                {
-                    Vector3 move = direction switch
-                    {
-                        "left" => Vector3.left,
-                        "right" => Vector3.right,
-                        "up" => Vector3.up,
-                        "down" => Vector3.down,
-                        "forward" => Vector3.forward,
-                        "backward" => Vector3.back,
-                        _ => Vector3.zero
-                    };
-                    obj.transform.Translate(move * 1f);
-                    Debug.Log($"➡️ Moved {objName} to the {direction}");
-                }
-                else Debug.LogWarning($"❗ GameObject '{objName}' not found.");
+                JArray dir = (JArray)parsed["direction"];
+                float dx = dir[0].ToObject<float>();
+                float dy = dir[1].ToObject<float>();
+                float dz = dir[2].ToObject<float>();
+
+                Vector3 moveVector = new Vector3(dx, dy, dz);
+                obj.transform.position += moveVector;
+                Debug.Log($"🚚 Moved {objectName} by {moveVector}");
             }
             else if (action == "delete")
             {
-                GameObject obj = GameObject.Find(objName);
-                if (obj != null)
-                {
-                    Destroy(obj);
-                    Debug.Log($"🗑️ Deleted GameObject: {objName}");
-                }
-                else Debug.LogWarning($"❗ GameObject '{objName}' not found for deletion.");
+                Destroy(obj);
+                Debug.Log($"🗑️ Deleted object: {objectName}");
             }
-            else if (action == "add")
+            else
             {
-                JObject props = (JObject)data["properties"];
-                string color = props["color"]?.ToString();
-                string shape = props["shape"]?.ToString();
-                string size = props["size"]?.ToString();
-                string prefabName = $"{shape}_{color}_{size}";
-
-                GameObject prefab = Resources.Load<GameObject>($"{prefabPath}{prefabName}");
-                if (prefab != null)
-                {
-                    GameObject newObj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-                    newObj.name = objName;
-                    Debug.Log($"✨ Created object: {objName}");
-                }
-                else
-                {
-                    Debug.LogWarning($"❗ Prefab not found: {prefabPath}{prefabName}");
-                }
+                Debug.LogWarning("⚠️ Unknown action: " + action);
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"❌ JSON Parse error: {e.Message}");
+            Debug.LogError("❌ Failed to parse or execute JSON: " + e.Message);
         }
+
+        stream.Close();
+        client.Close();
     }
 
     void OnApplicationQuit()
     {
-        server.Stop();
+        server?.Stop();
     }
 }

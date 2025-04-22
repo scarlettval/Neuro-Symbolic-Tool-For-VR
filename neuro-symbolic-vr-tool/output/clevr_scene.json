@@ -1,21 +1,10 @@
 {
   "objects": [
     {
-      "label": "small_green_cylinder",
-      "position": [
-        276,
-        348,
-        0
-      ],
-      "size": "small",
-      "color": "green",
-      "shape": "cylinder"
-    },
-    {
       "label": "small_blue_sphere",
       "position": [
-        575,
-        239,
+        789,
+        262,
         0
       ],
       "size": "small",
@@ -23,14 +12,25 @@
       "shape": "sphere"
     },
     {
-      "label": "small_purple_cube",
+      "label": "small_green_sphere",
       "position": [
-        265,
-        237,
+        602,
+        290,
         0
       ],
       "size": "small",
-      "color": "purple",
+      "color": "green",
+      "shape": "sphere"
+    },
+    {
+      "label": "small_brown_cube",
+      "position": [
+        245,
+        270,
+        0
+      ],
+      "size": "small",
+      "color": "brown",
       "shape": "cube"
     }
   ]

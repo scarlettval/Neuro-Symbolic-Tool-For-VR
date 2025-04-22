@@ -2,9 +2,9 @@
     "action": "move",
     "object": "large_blue_cube",
     "direction": [
-        -1,
+        1,
         0,
         0
     ],
-    "label": "left"
+    "label": "right"
 }
