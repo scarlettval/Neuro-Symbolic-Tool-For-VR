@@ -26,9 +26,17 @@ def run_symbolic_pipeline(command_text):
     print(f"[INFO] Running interpret on: {command_text}")
     result = list(prolog.query(f"interpret('{command_text}', Action)"))
 
-    if not result:
-        print("[WARN] No valid symbolic action returned.")
+    if not result or result[0]["Action"] == "unknown_command":
+        print("[ERROR] Unrecognized or unsupported voice command.")
+        # Optionally clear stale JSON so Unity doesn’t act
+        try:
+            if os.path.exists(JSON_PATH):
+                os.remove(JSON_PATH)
+                print("[INFO] Cleared previous symbolic_action.json")
+        except Exception as e:
+            print(f"[ERROR] Failed to clear stale JSON: {e}")
         return
+
 
     action_term = result[0]["Action"]
     print(f"[RESULT] Symbolic Result: {action_term}")

@@ -43,7 +43,26 @@ def export_to_unity(symbolic_result_str, output_path="output/symbolic_action.jso
                 "action": "delete",
                 "object": args[0]
             }
+        
+        
+        elif action == "delete" or action == "delete_object":
+            data = {
+                "action": "delete",
+                "object": args[0]
+            }
 
+        elif action == "add" or action == "add_object":
+            obj_id, color, shape, material, size = args
+            data = {
+                "action": "add",
+                "object": obj_id,
+                "properties": {
+                    "color": color,
+                    "shape": shape,
+                    "material": material,
+                    "size": size
+                }
+            }
         else:
             print(f"❌ Unsupported action: {action}")
             return

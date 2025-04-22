@@ -1,5 +1,5 @@
 %% rules.pl
-%% Dynamic scene management and command interpretation for CLEVR-based VR.
+%% Full symbolic interpretation rules for Neuro-Symbolic VR
 
 :- module(rules, [
     load_scene/1,
@@ -10,12 +10,11 @@
     list_objects/0
 ]).
 
-:- use_module(library(http/json)).   % json_read_dict/2
+:- use_module(library(http/json)).
 :- dynamic object/6.
 :- discontiguous parse_command/2.
 
-%% load_scene(+JSONFile)
-%  Read CLEVR scene JSON and assert object/6 facts.
+%% === Load Scene from JSON ===
 load_scene(File) :-
     retractall(object(_,_,_,_,_,_)),
     open(File, read, In),
@@ -34,81 +33,78 @@ assert_object(Obj) :-
     Position  = Obj.get(position),
     assertz(object(Label, Color, Shape, Material, Size, Position)).
 
-%% add_object(+ID, +Color, +Shape, +Material, +Size)
-%  Default at origin.
+%% === Object Manipulation ===
 add_object(Id,Color,Shape,Material,Size) :-
     default_position(X,Y,Z),
     assertz(object(Id,Color,Shape,Material,Size,[X,Y,Z])).
 
-%% delete_object(+ID)
 delete_object(Id) :-
     retractall(object(Id,_,_,_,_,_)).
 
-%% move_object(+ID, +DX, +DY, +DZ)
 move_object(Id,DX,DY,DZ) :-
     object(Id,C,S,M,Si,[X,Y,Z]),
     NewX is X+DX, NewY is Y+DY, NewZ is Z+DZ,
     retract(object(Id,C,S,M,Si,[X,Y,Z])),
     assertz(object(Id,C,S,M,Si,[NewX,NewY,NewZ])).
 
-%% list_objects
 list_objects :-
     forall(object(ID,C,S,M,Si,Pos),
            format('~w: ~w ~w ~w (~w) at ~w~n',[ID,C,S,M,Si,Pos])
     ).
 
-%% default_position(-X,-Y,-Z)
 default_position(0,0,0).
 
-%% interpret(+CommandString, -ActionTerm)
-%  Parses a space-separated command into an action.
+%% === Interpret Symbolic Commands ===
 interpret(Command, Action) :-
     string_lower(Command, Lower),
     split_string(Lower, " ", "", Tokens),
     parse_command(Tokens, Action).
 
-%% Simple grammar for add, delete, move
-parse_command(["add",Color,Shape,Size,Material],
-              add(NewID,ColorAtom,ShapeAtom,MaterialAtom,SizeAtom)) :-
-    atom_string(ColorAtom,Color),
-    atom_string(ShapeAtom,Shape),
-    atom_string(SizeAtom,Size),
-    atom_string(MaterialAtom,Material),
-    gensym(obj_,NewID),
-    add_object(NewID,ColorAtom,ShapeAtom,MaterialAtom,SizeAtom).
+%% === Grammar Rules ===
 
-parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", Dir1],
+% Move: natural description
+parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", Dir],
               move(ID, DX, DY, DZ)) :-
     atom_string(Size, SizeStr),
     atom_string(Color, ColorStr),
     atom_string(Shape, ShapeStr),
-    atom_string(Direction, Dir1),
+    atom_string(Direction, Dir),
     format_atom_id(Size, Color, Shape, ID),
     direction_delta(Direction, DX, DY, DZ).
 
-parse_command(["move", "the", SizeStr, ColorStr, ShapeStr, "to", "the", Dir2],
-              move(ID, DX, DY, DZ)) :-
+% Move: by delta
+parse_command(["move", "object", IdStr, "by", DXs, DYs, DZs],
+              move(Id, DX, DY, DZ)) :-
+    atom_string(Id, IdStr),
+    number_string(DX, DXs),
+    number_string(DY, DYs),
+    number_string(DZ, DZs).
+
+% Delete by object ID
+parse_command(["delete", "object", IdStr],
+              delete(Id)) :-
+    atom_string(Id, IdStr).
+
+% Delete by description
+parse_command(["delete", "the", SizeStr, ColorStr, ShapeStr],
+              delete(ID)) :-
     atom_string(Size, SizeStr),
     atom_string(Color, ColorStr),
     atom_string(Shape, ShapeStr),
-    atom_string(Direction, Dir2),
     format_atom_id(Size, Color, Shape, ID),
-    direction_delta(Direction, DX, DY, DZ).
+    delete_object(ID).
 
-parse_command(["delete","object",IdStr],
-              delete(IdAtom)) :-
-    atom_string(IdAtom,IdStr),
-    delete_object(IdAtom).
+parse_command(["add", SizeStr, ColorStr, ShapeStr, MaterialStr],
+              add(NewID, Color, Shape, Material, Size)) :-
+    atom_string(Size, SizeStr),
+    atom_string(Color, ColorStr),
+    atom_string(Shape, ShapeStr),
+    atom_string(Material, MaterialStr),
+    gensym(obj_, NewID),
+    add_object(NewID, Color, Shape, Material, Size).
 
-parse_command(["move","object",IdStr,"by",DXs,DYs,DZs],
-              move(IdAtom,DX,DY,DZ)) :-
-    atom_string(IdAtom,IdStr),
-    number_string(DX,DXs),
-    number_string(DY,DYs),
-    number_string(DZ,DZs),
-    move_object(IdAtom,DX,DY,DZ).
 
-%% direction_delta(+Direction, -DX, -DY, -DZ)
+%% === Direction Mapping ===
 direction_delta(left,  -1, 0, 0).
 direction_delta(right,  1, 0, 0).
 direction_delta(forward, 0, 0, -1).
@@ -116,9 +112,9 @@ direction_delta(backward, 0, 0, 1).
 direction_delta(up,     0, 1, 0).
 direction_delta(down,   0, -1, 0).
 
-%% format_atom_id(+Size, +Color, +Shape, -ID)
+%% === ID Formatter ===
 format_atom_id(Size, Color, Shape, ID) :-
     atomic_list_concat([Size, Color, Shape], '_', ID).
 
-%% Fallback: no match
-parse_command(_,unknown_command).
+%% Fallback
+parse_command(_, unknown_command).
